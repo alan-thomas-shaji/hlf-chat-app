@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:hlfchat/chat_screen.dart';
 import 'package:hlfchat/themes/text_theme.dart';
 
 class Home extends StatefulWidget {
@@ -111,50 +112,55 @@ class ChatListHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Align(
-        alignment: Alignment.center,
-        child: Container(
-          padding: EdgeInsets.all(14),
-          height: 75,
-          width: Get.width * 0.94,
-          decoration: BoxDecoration(
-            color: Color.fromARGB(255, 231, 236, 241),
-            borderRadius: BorderRadius.circular(18),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CircleAvatar(
-                backgroundImage: AssetImage('assets/images/avatar.jpg'),
-                radius: 25,
-              ),
-              Spacer(flex: 1),
-              Padding(
-                padding: const EdgeInsets.all(3.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Jaime Allen',
-                      style: HLFTextTheme.kNameTextStyle,
-                    ),
-                    SizedBox(height: 3),
-                    Text(
-                      'You: Okay',
-                      style: HLFTextTheme.kStatusTextStyle,
-                    ),
-                  ],
+    return GestureDetector(
+      onTap: () {
+        Get.to(() => ChatScreen(), transition: Transition.rightToLeft);
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Align(
+          alignment: Alignment.center,
+          child: Container(
+            padding: EdgeInsets.all(14),
+            height: 75,
+            width: Get.width * 0.94,
+            decoration: BoxDecoration(
+              color: Color.fromARGB(255, 231, 236, 241),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CircleAvatar(
+                  backgroundImage: AssetImage('assets/images/avatar.jpg'),
+                  radius: 25,
                 ),
-              ),
-              Spacer(flex: 16),
-              Text(
-                '04:25 PM',
-                style: HLFTextTheme.kTimeTextStyle,
-              )
-            ],
+                Spacer(flex: 1),
+                Padding(
+                  padding: const EdgeInsets.all(3.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Jaime Allen',
+                        style: HLFTextTheme.kNameTextStyle,
+                      ),
+                      SizedBox(height: 3),
+                      Text(
+                        'You: Okay',
+                        style: HLFTextTheme.kStatusTextStyle,
+                      ),
+                    ],
+                  ),
+                ),
+                Spacer(flex: 16),
+                Text(
+                  '04:25 PM',
+                  style: HLFTextTheme.kTimeTextStyle,
+                )
+              ],
+            ),
           ),
         ),
       ),
