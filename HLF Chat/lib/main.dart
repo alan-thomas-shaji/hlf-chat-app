@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'chatPage.dart';
+import 'home.dart';
 
 void main() => runApp(MyMaterial());
 

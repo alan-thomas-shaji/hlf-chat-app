@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:hlfchat/themes/text_theme.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -17,11 +18,11 @@ class _HomeState extends State<Home> {
       appBar: AppBar(
         title: Text(
           'Chat',
-          style: TextStyle(color: Colors.black),
+          style: HLFTextTheme.kSubHeadTextStyle,
         ),
         actions: [
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: CircleAvatar(
               backgroundImage: AssetImage('assets/images/avatar.jpg'),
               radius: 18,
@@ -43,8 +44,8 @@ class _HomeState extends State<Home> {
         ),
       ),
       bottomNavigationBar: Container(
-        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-        height: 60,
+        padding: EdgeInsets.symmetric(horizontal: 38, vertical: 5),
+        height: 52,
         width: Get.width,
         decoration: BoxDecoration(
           color: Colors.transparent,
@@ -58,8 +59,8 @@ class _HomeState extends State<Home> {
                   bottomNav = [true, false, false, false];
                 });
               },
-              icon: Icon(
-                FontAwesomeIcons.message,
+              icon: Image.asset(
+                'assets/icons/chat.png',
                 color: bottomNav[0] ? Colors.black : Colors.grey,
               ),
             ),
@@ -69,8 +70,8 @@ class _HomeState extends State<Home> {
                   bottomNav = [false, true, false, false];
                 });
               },
-              icon: Icon(
-                FontAwesomeIcons.phone,
+              icon: Image.asset(
+                'assets/icons/phone.png',
                 color: bottomNav[1] ? Colors.black : Colors.grey,
               ),
             ),
@@ -80,8 +81,8 @@ class _HomeState extends State<Home> {
                   bottomNav = [false, false, true, false];
                 });
               },
-              icon: Icon(
-                FontAwesomeIcons.user,
+              icon: Image.asset(
+                'assets/icons/user.png',
                 color: bottomNav[2] ? Colors.black : Colors.grey,
               ),
             ),
@@ -91,8 +92,8 @@ class _HomeState extends State<Home> {
                   bottomNav = [false, false, false, true];
                 });
               },
-              icon: Icon(
-                FontAwesomeIcons.gear,
+              icon: Image.asset(
+                'assets/icons/settings.png',
                 color: bottomNav[3] ? Colors.black : Colors.grey,
               ),
             )
@@ -119,7 +120,7 @@ class ChatListHeader extends StatelessWidget {
           height: 75,
           width: Get.width * 0.94,
           decoration: BoxDecoration(
-            color: Color.fromARGB(255, 230, 230, 230),
+            color: Color.fromARGB(255, 231, 236, 241),
             borderRadius: BorderRadius.circular(18),
           ),
           child: Row(
@@ -132,18 +133,27 @@ class ChatListHeader extends StatelessWidget {
               ),
               Spacer(flex: 1),
               Padding(
-                padding: const EdgeInsets.all(4.0),
+                padding: const EdgeInsets.all(3.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Jaime Allen'),
-                    SizedBox(height: 4),
-                    Text('You: Okay'),
+                    Text(
+                      'Jaime Allen',
+                      style: HLFTextTheme.kNameTextStyle,
+                    ),
+                    SizedBox(height: 3),
+                    Text(
+                      'You: Okay',
+                      style: HLFTextTheme.kStatusTextStyle,
+                    ),
                   ],
                 ),
               ),
               Spacer(flex: 16),
-              Text('Time')
+              Text(
+                '04:25 PM',
+                style: HLFTextTheme.kTimeTextStyle,
+              )
             ],
           ),
         ),
