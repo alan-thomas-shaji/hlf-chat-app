@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 import 'package:hlfchat/chat_screen.dart';
 import 'package:hlfchat/themes/text_theme.dart';
 
+import 'models/user_model.dart';
+
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
 
@@ -13,6 +15,20 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   List<bool> bottomNav = [true, false, false, false];
+  List<User> users = [
+    User(name: 'Jeffin', isOnline: false, messages: [
+      Message(
+        content: 'Hi',
+        timestamp: DateTime.utc(2022, 1, 1, 12, 40),
+        isMe: true,
+      ),
+      Message(
+        content: 'Hello',
+        timestamp: DateTime.utc(2022, 1, 1, 12, 41),
+        isMe: false,
+      ),
+    ]),
+  ];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,10 +53,9 @@ class _HomeState extends State<Home> {
         padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
-            ChatListHeader(),
-            ChatListHeader(),
-            ChatListHeader(),
-            ChatListHeader(),
+            ChatListHeader(user: users[0]),
+            ChatListHeader(user: users[0]),
+            ChatListHeader(user: users[0]),
           ],
         ),
       ),
@@ -106,15 +121,18 @@ class _HomeState extends State<Home> {
 }
 
 class ChatListHeader extends StatelessWidget {
+  final User? user;
   const ChatListHeader({
     Key? key,
+    this.user,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Get.to(() => ChatScreen(), transition: Transition.rightToLeft);
+        Get.to(() => ChatScreen(user: user),
+            transition: Transition.rightToLeft);
       },
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -143,7 +161,7 @@ class ChatListHeader extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Jaime Allen',
+                        user!.name!,
                         style: HLFTextTheme.kNameTextStyle,
                       ),
                       SizedBox(height: 3),
@@ -155,9 +173,23 @@ class ChatListHeader extends StatelessWidget {
                   ),
                 ),
                 Spacer(flex: 16),
-                Text(
-                  '04:25 PM',
-                  style: HLFTextTheme.kTimeTextStyle,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '04:25 PM',
+                      style: HLFTextTheme.kTimeTextStyle,
+                    ),
+                    Container(
+                      height: 7,
+                      width: 7,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: user!.isOnline! ? Colors.green : Colors.grey,
+                      ),
+                    )
+                  ],
                 )
               ],
             ),

@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hlfchat/themes/text_theme.dart';
 
+import 'models/user_model.dart';
+
 class ChatScreen extends StatefulWidget {
-  ChatScreen({Key? key}) : super(key: key);
+  final User? user;
+  ChatScreen({Key? key, this.user}) : super(key: key);
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -35,12 +38,12 @@ class _ChatScreenState extends State<ChatScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Jaime Allen',
+                          widget.user!.name!,
                           style: HLFTextTheme.kNameTextStyle,
                         ),
                         SizedBox(height: 3),
                         Text(
-                          'Active Now',
+                          widget.user!.isOnline! ? 'Active Now' : 'Offline Now',
                           style: HLFTextTheme.kStatusTextStyle,
                         ),
                       ],
@@ -59,9 +62,17 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ),
             Container(
-              height: Get.height * 0.75,
-              color: Color.fromARGB(255, 234, 235, 241),
-            ),
+                height: Get.height * 0.75,
+                color: Color.fromARGB(255, 234, 235, 241),
+                child: ListView.builder(
+                  itemCount: widget.user!.messages!.length,
+                  itemBuilder: (context, index) {
+                    return MessageBubble(
+                      text: widget.user!.messages![index].content!,
+                      isMe: widget.user!.messages![index].isMe,
+                    );
+                  },
+                )),
             Container(
               height: 45,
               padding: EdgeInsets.all(15),
@@ -82,6 +93,32 @@ class _ChatScreenState extends State<ChatScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class MessageBubble extends StatelessWidget {
+  final String? text;
+  final bool? isMe;
+  const MessageBubble({
+    Key? key,
+    this.text,
+    this.isMe,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(6),
+      child: Text(text!),
+      decoration: BoxDecoration(
+          color: isMe! ? Colors.blue : Colors.grey,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(7),
+            topRight: Radius.circular(7),
+            bottomLeft: isMe! ? Radius.circular(7) : Radius.circular(0),
+            bottomRight: isMe! ? Radius.circular(0) : Radius.circular(7),
+          )),
     );
   }
 }
