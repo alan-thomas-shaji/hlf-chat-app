@@ -37,4 +37,13 @@ class HLFTextTheme {
       color: Colors.grey,
     ),
   );
+
+  static var kTypeTextStyle = GoogleFonts.inter(
+    textStyle: TextStyle(
+      fontSize: 15,
+      fontWeight: FontWeight.w500,
+      height: 1.2,
+      color: Colors.grey,
+    ),
+  );
 }

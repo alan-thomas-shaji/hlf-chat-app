@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get/get_connect/http/src/utils/utils.dart';
 import 'package:hlfchat/themes/text_theme.dart';
 
 import 'models/user_model.dart';
@@ -16,6 +17,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: Color.fromARGB(255, 234, 235, 241),
       body: SafeArea(
         child: Column(
@@ -61,9 +63,9 @@ class _ChatScreenState extends State<ChatScreen> {
                 ],
               ),
             ),
-            Container(
-                height: Get.height * 0.75,
-                color: Color.fromARGB(255, 234, 235, 241),
+            Expanded(
+              child: Container(
+                color: Color.fromARGB(255, 224, 225, 231),
                 child: ListView.builder(
                   itemCount: widget.user!.messages!.length,
                   itemBuilder: (context, index) {
@@ -72,10 +74,12 @@ class _ChatScreenState extends State<ChatScreen> {
                       isMe: widget.user!.messages![index].isMe,
                     );
                   },
-                )),
+                ),
+              ),
+            ),
             Container(
               height: 45,
-              padding: EdgeInsets.all(15),
+              padding: EdgeInsets.all(11),
               margin: EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: Color.fromARGB(255, 217, 219, 228),
@@ -85,8 +89,12 @@ class _ChatScreenState extends State<ChatScreen> {
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   hintText: 'Type a message...',
-                  hintStyle: HLFTextTheme.kStatusTextStyle,
+                  hintStyle: HLFTextTheme.kTypeTextStyle,
                   contentPadding: EdgeInsets.all(9),
+                  suffixIcon: InkWell(
+                    onTap: () {},
+                    child: Image.asset('assets/icons/send.png'),
+                  ),
                 ),
               ),
             ),
@@ -108,17 +116,31 @@ class MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(6),
-      child: Text(text!),
-      decoration: BoxDecoration(
-          color: isMe! ? Colors.blue : Colors.grey,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(7),
-            topRight: Radius.circular(7),
-            bottomLeft: isMe! ? Radius.circular(7) : Radius.circular(0),
-            bottomRight: isMe! ? Radius.circular(0) : Radius.circular(7),
-          )),
+    return Row(
+      mainAxisAlignment:
+          isMe! ? MainAxisAlignment.end : MainAxisAlignment.start,
+      children: [
+        isMe! ? Spacer() : SizedBox(),
+        Flexible(
+          flex: 6,
+          child: Container(
+            margin:
+                EdgeInsets.fromLTRB(isMe! ? 70 : 14, 10, isMe! ? 14 : 70, 1),
+            padding: EdgeInsets.all(8),
+            child: Text(text!, softWrap: true),
+            decoration: BoxDecoration(
+              color: isMe! ? Colors.cyan : Color.fromARGB(255, 180, 180, 180),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(10),
+                topRight: Radius.circular(10),
+                bottomLeft: isMe! ? Radius.circular(10) : Radius.circular(0),
+                bottomRight: isMe! ? Radius.circular(0) : Radius.circular(10),
+              ),
+            ),
+          ),
+        ),
+        isMe! ? SizedBox() : Spacer(),
+      ],
     );
   }
 }

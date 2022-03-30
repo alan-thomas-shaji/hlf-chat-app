@@ -28,6 +28,30 @@ class _HomeState extends State<Home> {
         isMe: false,
       ),
     ]),
+    User(name: 'Navaneeth', isOnline: true, messages: [
+      Message(
+        content: 'Hi',
+        timestamp: DateTime.utc(2022, 1, 1, 12, 40),
+        isMe: true,
+      ),
+      Message(
+        content: 'Hello',
+        timestamp: DateTime.utc(2022, 1, 1, 12, 41),
+        isMe: false,
+      ),
+    ]),
+    User(name: 'Alan', isOnline: true, messages: [
+      Message(
+        content: 'Hi',
+        timestamp: DateTime.utc(2022, 1, 1, 12, 40),
+        isMe: true,
+      ),
+      Message(
+        content: 'Hello',
+        timestamp: DateTime.utc(2022, 1, 1, 12, 41),
+        isMe: false,
+      ),
+    ]),
   ];
   @override
   Widget build(BuildContext context) {
@@ -54,8 +78,8 @@ class _HomeState extends State<Home> {
         child: Column(
           children: [
             ChatListHeader(user: users[0]),
-            ChatListHeader(user: users[0]),
-            ChatListHeader(user: users[0]),
+            ChatListHeader(user: users[1]),
+            ChatListHeader(user: users[2]),
           ],
         ),
       ),
