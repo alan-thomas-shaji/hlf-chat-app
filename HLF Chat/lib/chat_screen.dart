@@ -91,9 +91,27 @@ class _ChatScreenState extends State<ChatScreen> {
                   hintText: 'Type a message...',
                   hintStyle: HLFTextTheme.kTypeTextStyle,
                   contentPadding: EdgeInsets.all(9),
-                  suffixIcon: InkWell(
-                    onTap: () {},
-                    child: Image.asset('assets/icons/send.png'),
+                  suffixIcon: SizedBox(
+                    width: 50,
+                    child: Row(
+                      children: [
+                        InkWell(
+                          onTap: () {},
+                          child: Image.asset(
+                            'assets/icons/attachment.png',
+                            width: 18,
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        InkWell(
+                          onTap: () {},
+                          child: Image.asset(
+                            'assets/icons/send.png',
+                            width: 18,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

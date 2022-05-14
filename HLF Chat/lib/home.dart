@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:hlfchat/chat_screen.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:hlfchat/themes/text_theme.dart';
 
 import 'models/user_model.dart';
@@ -14,6 +15,10 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  final IO.Socket socket = IO.io(
+      'http://localhost:3001',
+      IO.OptionBuilder().setTransports(['websocket']).setQuery(
+          {'username': 'Jobin'}).build());
   List<bool> bottomNav = [true, false, false, false];
   List<User> users = [
     User(name: 'Jeffin', isOnline: false, messages: [
@@ -53,6 +58,51 @@ class _HomeState extends State<Home> {
       ),
     ]),
   ];
+
+  socketInit() {
+    print("Socket init");
+
+    // socket.connect();
+    socket.onConnect((_) {
+      print('connect');
+      socket.emit('message', {'message': 'Hello World', 'sender': 'Jobin'});
+    });
+    socket.onConnectError((data) {
+      print('connect error ${data}');
+    });
+    socket.on('event', (data) => print(data));
+    socket.onDisconnect((_) => print('disconnect'));
+    socket.on('fromServer', (_) => print(_));
+
+    // IO.Socket socket = IO.io('http://localhost:3001');
+    // try {
+    //   print("Socket enter");
+    //   // socket.connect();
+    //   socket.on('connect', (_) {
+    //     print('connected');
+    //     socket.emit('message', 'ghfhfh'
+    //         // {
+    //         //   "id": socket.id,
+    //         //   "message": 'message hft', //--> message to be sent
+    //         //   "username": 'Jobin',
+    //         //   "sentAt": DateTime.now().toLocal().toString().substring(0, 16),
+    //         // },
+    //         );
+    //   });
+    // } catch (e) {
+    //   print(e);
+    // }
+    // socket.on('event', (data) => print(data));
+    // socket.onDisconnect((_) => print('disconnect'));
+    // socket.on('fromServer', (_) => print(_));
+  }
+
+  @override
+  void initState() {
+    socketInit();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
