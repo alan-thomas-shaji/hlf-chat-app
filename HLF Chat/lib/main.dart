@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'home.dart';
 
-void main() => runApp(MyMaterial());
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(MyMaterial());
+}
 
 class MyMaterial extends StatelessWidget {
   @override

@@ -1,19 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_connect/http/src/utils/utils.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:hlfchat/themes/text_theme.dart';
 
 import 'models/user_model.dart';
 
 class ChatScreen extends StatefulWidget {
   final User? user;
-  ChatScreen({Key? key, this.user}) : super(key: key);
+  final IO.Socket? socket;
+  ChatScreen({Key? key, this.user, this.socket}) : super(key: key);
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  taphandle() {
+    widget.socket!.emit('message', {
+      'reciever': widget.user!.name,
+      'sender': 'Jobin',
+      'message': 'Hello',
+      'timestamp': DateTime.now().toIso8601String(),
+      'issender': true,
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -90,7 +102,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   border: InputBorder.none,
                   hintText: 'Type a message...',
                   hintStyle: HLFTextTheme.kTypeTextStyle,
-                  contentPadding: EdgeInsets.all(9),
+                  contentPadding: EdgeInsets.all(14),
                   suffixIcon: SizedBox(
                     width: 50,
                     child: Row(
@@ -104,7 +116,9 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                         SizedBox(width: 10),
                         InkWell(
-                          onTap: () {},
+                          onTap: () {
+                            taphandle();
+                          },
                           child: Image.asset(
                             'assets/icons/send.png',
                             width: 18,
