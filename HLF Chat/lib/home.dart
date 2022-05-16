@@ -127,9 +127,18 @@ class _HomeState extends State<Home> {
         padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
-            ChatListHeader(user: users[0]),
-            ChatListHeader(user: users[1]),
-            ChatListHeader(user: users[2]),
+            ChatListHeader(
+              user: users[0],
+              socket: socket,
+            ),
+            ChatListHeader(
+              user: users[1],
+              socket: socket,
+            ),
+            ChatListHeader(
+              user: users[2],
+              socket: socket,
+            ),
           ],
         ),
       ),
@@ -196,16 +205,22 @@ class _HomeState extends State<Home> {
 
 class ChatListHeader extends StatelessWidget {
   final User? user;
+  final IO.Socket? socket;
   const ChatListHeader({
     Key? key,
     this.user,
+    this.socket,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Get.to(() => ChatScreen(user: user),
+        Get.to(
+            () => ChatScreen(
+                  user: user,
+                  socket: socket,
+                ),
             transition: Transition.rightToLeft);
       },
       child: Padding(
