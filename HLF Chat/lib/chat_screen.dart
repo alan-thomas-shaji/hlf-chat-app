@@ -7,7 +7,7 @@ import 'package:hlfchat/themes/text_theme.dart';
 import 'models/user_model.dart';
 
 class ChatScreen extends StatefulWidget {
-  final User? user;
+  final User1? user;
   final IO.Socket? socket;
   ChatScreen({Key? key, this.user, this.socket}) : super(key: key);
 
