@@ -1,21 +1,21 @@
-require('dotenv').config();
-const app = require('express')();
-const http = require('http').createServer(app);
-const io = require('socket.io')(http);
-const mongoose = require('mongoose');
-const { msgSchema, userSchema } = require('./mongodb/schema');
+require("dotenv").config();
+const app = require("express")();
+const http = require("http").createServer(app);
+const io = require("socket.io")(http);
+const mongoose = require("mongoose");
+const { msgSchema, userSchema } = require("./mongodb/schema");
 
 console.log(process.env.MONGODB_PASSWD);
 
 mongoose.connect(
-  'mongodb+srv://admin-nkes:' +
+  "mongodb+srv://admin-nkes:" +
     process.env.MONGODB_PASSWD +
-    '@cluster0.wx7lg.mongodb.net/msgDB',
-  { useNewUrlParser: true },
+    "@cluster0.wx7lg.mongodb.net/msgDB",
+  { useNewUrlParser: true }
 );
 
-const Message = mongoose.model('Message', msgSchema);
-const User = mongoose.model('User', userSchema);
+const Message = mongoose.model("Message", msgSchema);
+const User = mongoose.model("User", userSchema);
 
 // const admin = new User({
 //   email: "admin-user@gmail.com",
@@ -24,8 +24,8 @@ const User = mongoose.model('User', userSchema);
 
 // admin.save();
 
-app.get('/', (req, res) => {
-  res.send('<h1>Hello world</h1>');
+app.get("/", (req, res) => {
+  res.send("<h1>Hello world</h1>");
 });
 
 // io.on('connection', (socket) => {
@@ -36,32 +36,33 @@ app.get('/', (req, res) => {
 //   });
 // });
 
-io.on('connection', (socket) => {
+io.on("connection", (socket) => {
   //Get the chatID of the user and join in a room of the same chatID
   chatID = socket.handshake.query.chatID;
   socket.join(chatID);
 
   //Leave the room if the user closes the socket
-  socket.on('disconnect', () => {
+  socket.on("disconnect", () => {
     socket.leave(chatID);
   });
 
   //Send message to only a particular user
-  socket.on('message', (message) => {
-    receiverChatID = message.receiverChatID;
-    senderChatID = message.senderChatID;
-    content = message.content;
-    console.log(message);
+  socket.on("message", (data) => {
+    receiverChatID = data.receiverChatID;
+    senderChatID = data.senderChatID;
+    content = "message.content";
+    message = data.message;
+    console.log(data);
 
     //Send message to only that particular room
-    socket.in(receiverChatID).emit('receive_message', {
-      content: content,
-      senderChatID: senderChatID,
-      receiverChatID: receiverChatID,
+    socket.emit("receive_message", {
+      'content': message,
+      'senderChatID': senderChatID,
+      'receiverChatID': receiverChatID,
     });
   });
 });
 
-http.listen(3001, () => {
-  console.log('listening on: 3001');
+http.listen(3001, "0.0.0.0", () => {
+  console.log("listening on: 3001");
 });
