@@ -20,8 +20,8 @@ class _HomeState extends State<Home> {
       IO.OptionBuilder().setTransports(['websocket']).setQuery(
           {'username': 'Jobin'}).build());
   List<bool> bottomNav = [true, false, false, false];
-  List<User> users = [
-    User(name: 'Jeffin', isOnline: false, messages: [
+  List<User1> users = [
+    User1(name: 'Jeffin', isOnline: false, messages: [
       Message(
         content: 'Hi',
         timestamp: DateTime.utc(2022, 1, 1, 12, 40),
@@ -33,7 +33,7 @@ class _HomeState extends State<Home> {
         isMe: false,
       ),
     ]),
-    User(name: 'Navaneeth', isOnline: true, messages: [
+    User1(name: 'Navaneeth', isOnline: true, messages: [
       Message(
         content: 'Hi',
         timestamp: DateTime.utc(2022, 1, 1, 12, 40),
@@ -45,7 +45,7 @@ class _HomeState extends State<Home> {
         isMe: false,
       ),
     ]),
-    User(name: 'Alan', isOnline: true, messages: [
+    User1(name: 'Alan', isOnline: true, messages: [
       Message(
         content: 'Hi',
         timestamp: DateTime.utc(2022, 1, 1, 12, 40),
@@ -65,7 +65,8 @@ class _HomeState extends State<Home> {
     // socket.connect();
     socket.onConnect((_) {
       print('connect');
-      socket.emit('message', {'message': 'Hello World', 'sender': 'Jobin'});
+      socket
+          .emit('message', {'message': 'Hello World', 'sender': 'Jobin'});
     });
     socket.onConnectError((data) {
       print('connect error ${data}');
@@ -204,7 +205,7 @@ class _HomeState extends State<Home> {
 }
 
 class ChatListHeader extends StatelessWidget {
-  final User? user;
+  final User1? user;
   final IO.Socket? socket;
   const ChatListHeader({
     Key? key,

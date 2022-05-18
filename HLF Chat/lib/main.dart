@@ -1,10 +1,24 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
 import 'home.dart';
+import 'providers/chat_provider.dart';
+import 'providers/other_provider.dart';
+import 'providers/user_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(MyMaterial());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => OtherProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
+      ],
+      child: MyMaterial(),
+    ),
+  );
 }
 
 class MyMaterial extends StatelessWidget {
