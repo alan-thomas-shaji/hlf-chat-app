@@ -22,7 +22,6 @@ class _ChatScreenState extends State<ChatScreen> {
       'sender': 'Jobin',
       'message': 'Hello',
       'timestamp': DateTime.now().toIso8601String(),
-      'issender': true,
     });
   }
 
