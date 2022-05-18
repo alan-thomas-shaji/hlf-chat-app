@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
@@ -15,10 +17,8 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  final IO.Socket socket = IO.io(
-      'http://localhost:3001',
-      IO.OptionBuilder().setTransports(['websocket']).setQuery(
-          {'username': 'Jobin'}).build());
+  final clientID = 'Jobin';
+
   List<bool> bottomNav = [true, false, false, false];
   List<User1> users = [
     User1(name: 'Jeffin', isOnline: false, messages: [
@@ -58,6 +58,10 @@ class _HomeState extends State<Home> {
       ),
     ]),
   ];
+  final IO.Socket socket = IO.io(
+      'http://172.16.3.81:3001',
+      IO.OptionBuilder()
+          .setTransports(['websocket']).setQuery({'chatID': 'Jobin'}).build());
 
   socketInit() {
     print("Socket init");
@@ -65,37 +69,21 @@ class _HomeState extends State<Home> {
     // socket.connect();
     socket.onConnect((_) {
       print('connect');
-      socket
-          .emit('message', {'message': 'Hello World', 'sender': 'Jobin'});
+      socket.emit('message', {
+        'message': 'Connected to client device : $clientID',
+      });
     });
     socket.onConnectError((data) {
       print('connect error ${data}');
     });
-    socket.on('event', (data) => print(data));
+    socket.on('receive_message', (jsonData) {
+      var data = jsonData as Map<String, dynamic>;
+      // Map<dynamic, dynamic> data = json.decode(jsonData as String);
+      print(data);
+    });
+
     socket.onDisconnect((_) => print('disconnect'));
     socket.on('fromServer', (_) => print(_));
-
-    // IO.Socket socket = IO.io('http://localhost:3001');
-    // try {
-    //   print("Socket enter");
-    //   // socket.connect();
-    //   socket.on('connect', (_) {
-    //     print('connected');
-    //     socket.emit('message', 'ghfhfh'
-    //         // {
-    //         //   "id": socket.id,
-    //         //   "message": 'message hft', //--> message to be sent
-    //         //   "username": 'Jobin',
-    //         //   "sentAt": DateTime.now().toLocal().toString().substring(0, 16),
-    //         // },
-    //         );
-    //   });
-    // } catch (e) {
-    //   print(e);
-    // }
-    // socket.on('event', (data) => print(data));
-    // socket.onDisconnect((_) => print('disconnect'));
-    // socket.on('fromServer', (_) => print(_));
   }
 
   @override

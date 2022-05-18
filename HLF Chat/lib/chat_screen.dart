@@ -16,13 +16,23 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  taphandle() {
-    widget.socket!.emit('message', {
-      'reciever': widget.user!.name,
-      'sender': 'Jobin',
-      'message': 'Hello',
-      'timestamp': DateTime.now().toIso8601String(),
-    });
+  TextEditingController? messageController = TextEditingController();
+
+  tapHandle() {
+    if (messageController!.text.isNotEmpty) {
+      widget.socket!.emit('message', {
+        'receiverChatID': widget.user!.name,
+        'senderChatID': 'Jobin',
+        'message': messageController!.text,
+        'timestamp': DateTime.now().toIso8601String(),
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    messageController = TextEditingController();
+    super.initState();
   }
 
   @override
@@ -97,6 +107,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: TextField(
+                controller: messageController,
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   hintText: 'Type a message...',
@@ -116,7 +127,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         SizedBox(width: 10),
                         InkWell(
                           onTap: () {
-                            taphandle();
+                            tapHandle();
                           },
                           child: Image.asset(
                             'assets/icons/send.png',
