@@ -1,12 +1,12 @@
-class User {
+class User1 {
   String? name;
   bool? isOnline;
 
   List<Message>? messages;
 
-  User({this.name, this.isOnline, this.messages});
+  User1({this.name, this.isOnline, this.messages});
 
-  User.fromJson(Map<String, dynamic> json) {
+  User1.fromJson(Map<String, dynamic> json) {
     name = json['name'];
     isOnline = json['isOnline'];
     messages = json['messages'];
