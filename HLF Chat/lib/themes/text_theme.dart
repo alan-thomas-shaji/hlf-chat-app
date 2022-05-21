@@ -46,4 +46,12 @@ class HLFTextTheme {
       color: Colors.grey,
     ),
   );
+  static var kChatTextStyle = GoogleFonts.inter(
+    textStyle: TextStyle(
+      fontSize: 15,
+      fontWeight: FontWeight.w400,
+      height: 1.2,
+      color: Colors.black,
+    ),
+  );
 }

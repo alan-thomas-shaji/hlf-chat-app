@@ -26,7 +26,12 @@ class MyMaterial extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Home(),
+      home: Consumer2<OtherProvider, UserProvider>(
+        builder: (context, otherProvider, userProvider, child) {
+          otherProvider.getPermission();
+          return Home();
+        },
+      ),
     );
   }
 }

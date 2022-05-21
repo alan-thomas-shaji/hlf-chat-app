@@ -2,7 +2,7 @@ class User1 {
   String? name;
   bool? isOnline;
 
-  List<Message>? messages;
+  List<Message1>? messages;
 
   User1({this.name, this.isOnline, this.messages});
 
@@ -21,18 +21,18 @@ class User1 {
   }
 }
 
-class Message {
+class Message1 {
   String? content;
   DateTime? timestamp;
   bool? isMe;
 
-  Message({
+  Message1({
     this.content,
     this.timestamp,
     this.isMe,
   });
 
-  Message.fromJson(Map<String, dynamic> json) {
+  Message1.fromJson(Map<String, dynamic> json) {
     content = json['content'];
     isMe = json['isMe'];
     timestamp = json['timestamp'];
