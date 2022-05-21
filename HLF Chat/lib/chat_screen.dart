@@ -1,38 +1,33 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_connect/http/src/utils/utils.dart';
+import 'package:hlfchat/models/message.dart';
+import 'package:provider/provider.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+
+import 'package:hlfchat/providers/chat_provider.dart';
 import 'package:hlfchat/themes/text_theme.dart';
 
 import 'models/user_model.dart';
 
-class ChatScreen extends StatefulWidget {
-  final User1? user;
-  final IO.Socket? socket;
-  ChatScreen({Key? key, this.user, this.socket}) : super(key: key);
+class ChatScreen extends StatelessWidget {
+  final String? user;
+  ChatScreen({
+    Key? key,
+    this.user,
+  }) : super(key: key);
+  final TextEditingController? messageController = TextEditingController();
 
-  @override
-  State<ChatScreen> createState() => _ChatScreenState();
-}
-
-class _ChatScreenState extends State<ChatScreen> {
-  TextEditingController? messageController = TextEditingController();
-
-  tapHandle() {
+  tapHandle(BuildContext context) {
     if (messageController!.text.isNotEmpty) {
-      widget.socket!.emit('message', {
-        'receiverChatID': widget.user!.name,
-        'senderChatID': 'Jobin',
-        'message': messageController!.text,
-        'timestamp': DateTime.now().toIso8601String(),
-      });
+      Provider.of<ChatProvider>(context, listen: false).sendMessage(
+        user!,
+        messageController!.text,
+      );
+      messageController!.clear();
     }
-  }
-
-  @override
-  void initState() {
-    messageController = TextEditingController();
-    super.initState();
   }
 
   @override
@@ -61,12 +56,12 @@ class _ChatScreenState extends State<ChatScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          widget.user!.name!,
+                          user!,
                           style: HLFTextTheme.kNameTextStyle,
                         ),
                         SizedBox(height: 3),
                         Text(
-                          widget.user!.isOnline! ? 'Active Now' : 'Offline Now',
+                          true ? 'Active Now' : 'Offline Now',
                           style: HLFTextTheme.kStatusTextStyle,
                         ),
                       ],
@@ -85,21 +80,28 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ),
             Expanded(
-              child: Container(
-                color: Color.fromARGB(255, 224, 225, 231),
-                child: ListView.builder(
-                  itemCount: widget.user!.messages!.length,
-                  itemBuilder: (context, index) {
-                    return MessageBubble(
-                      text: widget.user!.messages![index].content!,
-                      isMe: widget.user!.messages![index].isMe,
-                    );
-                  },
-                ),
+              child: Consumer<ChatProvider>(
+                builder: (context, chatProvider, child) {
+                  List<Message> msgs = [];
+                  msgs = chatProvider.getMessages(user!);
+                  return Container(
+                    color: Color.fromARGB(255, 224, 225, 231),
+                    child: ListView.builder(
+                      itemCount: msgs.length,
+                      itemBuilder: (context, index) {
+                        return MessageBubble(
+                          text: msgs[index].text!,
+                          isMe: msgs[index].senderID != user,
+                        );
+                      },
+                    ),
+                  );
+                },
               ),
             ),
             Container(
               height: 45,
+              width: Get.width * 0.94,
               padding: EdgeInsets.all(11),
               margin: EdgeInsets.all(14),
               decoration: BoxDecoration(
@@ -108,6 +110,8 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               child: TextField(
                 controller: messageController,
+                textCapitalization: TextCapitalization.sentences,
+                maxLines: 1,
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   hintText: 'Type a message...',
@@ -127,7 +131,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         SizedBox(width: 10),
                         InkWell(
                           onTap: () {
-                            tapHandle();
+                            tapHandle(context);
                           },
                           child: Image.asset(
                             'assets/icons/send.png',
@@ -138,6 +142,9 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   ),
                 ),
+                onSubmitted: (val) {
+                  tapHandle(context);
+                },
               ),
             ),
           ],
@@ -169,7 +176,11 @@ class MessageBubble extends StatelessWidget {
             margin:
                 EdgeInsets.fromLTRB(isMe! ? 70 : 14, 10, isMe! ? 14 : 70, 1),
             padding: EdgeInsets.all(8),
-            child: Text(text!, softWrap: true),
+            child: Text(
+              text!,
+              softWrap: true,
+              style: HLFTextTheme.kChatTextStyle,
+            ),
             decoration: BoxDecoration(
               color: isMe! ? Colors.cyan : Color.fromARGB(255, 180, 180, 180),
               borderRadius: BorderRadius.only(

@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:hlfchat/chat_screen.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:hlfchat/providers/chat_provider.dart';
+
 import 'package:hlfchat/themes/text_theme.dart';
+import 'package:provider/provider.dart';
 
 import 'models/user_model.dart';
 
@@ -17,78 +19,49 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  final clientID = 'Jobin';
-
   List<bool> bottomNav = [true, false, false, false];
   List<User1> users = [
     User1(name: 'Jeffin', isOnline: false, messages: [
-      Message(
+      Message1(
         content: 'Hi',
         timestamp: DateTime.utc(2022, 1, 1, 12, 40),
         isMe: true,
       ),
-      Message(
+      Message1(
         content: 'Hello',
         timestamp: DateTime.utc(2022, 1, 1, 12, 41),
         isMe: false,
       ),
     ]),
     User1(name: 'Navaneeth', isOnline: true, messages: [
-      Message(
+      Message1(
         content: 'Hi',
         timestamp: DateTime.utc(2022, 1, 1, 12, 40),
         isMe: true,
       ),
-      Message(
+      Message1(
         content: 'Hello',
         timestamp: DateTime.utc(2022, 1, 1, 12, 41),
         isMe: false,
       ),
     ]),
     User1(name: 'Alan', isOnline: true, messages: [
-      Message(
+      Message1(
         content: 'Hi',
         timestamp: DateTime.utc(2022, 1, 1, 12, 40),
         isMe: true,
       ),
-      Message(
+      Message1(
         content: 'Hello',
         timestamp: DateTime.utc(2022, 1, 1, 12, 41),
         isMe: false,
       ),
     ]),
   ];
-  final IO.Socket socket = IO.io(
-      'http://172.16.3.81:3001',
-      IO.OptionBuilder()
-          .setTransports(['websocket']).setQuery({'chatID': 'Jobin'}).build());
-
-  socketInit() {
-    print("Socket init");
-
-    // socket.connect();
-    socket.onConnect((_) {
-      print('connect');
-      socket.emit('message', {
-        'message': 'Connected to client device : $clientID',
-      });
-    });
-    socket.onConnectError((data) {
-      print('connect error ${data}');
-    });
-    socket.on('receive_message', (jsonData) {
-      var data = jsonData as Map<String, dynamic>;
-      // Map<dynamic, dynamic> data = json.decode(jsonData as String);
-      print(data);
-    });
-
-    socket.onDisconnect((_) => print('disconnect'));
-    socket.on('fromServer', (_) => print(_));
-  }
 
   @override
   void initState() {
-    socketInit();
+    Provider.of<ChatProvider>(context, listen: false).socketInit();
     super.initState();
   }
 
@@ -112,23 +85,16 @@ class _HomeState extends State<Home> {
         elevation: 0,
         backgroundColor: Colors.transparent,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [
-            ChatListHeader(
-              user: users[0],
-              socket: socket,
-            ),
-            ChatListHeader(
-              user: users[1],
-              socket: socket,
-            ),
-            ChatListHeader(
-              user: users[2],
-              socket: socket,
-            ),
-          ],
+      body: Consumer<ChatProvider>(
+        builder: (context, chatProvider, child) => Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            children: [
+              ChatListHeader(user: chatProvider.otherUsers[0]),
+              ChatListHeader(user: chatProvider.otherUsers[1]),
+              ChatListHeader(user: chatProvider.otherUsers[2]),
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: Container(
@@ -193,12 +159,10 @@ class _HomeState extends State<Home> {
 }
 
 class ChatListHeader extends StatelessWidget {
-  final User1? user;
-  final IO.Socket? socket;
+  final String? user;
   const ChatListHeader({
     Key? key,
     this.user,
-    this.socket,
   }) : super(key: key);
 
   @override
@@ -206,11 +170,9 @@ class ChatListHeader extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         Get.to(
-            () => ChatScreen(
-                  user: user,
-                  socket: socket,
-                ),
-            transition: Transition.rightToLeft);
+          () => ChatScreen(user: user),
+          transition: Transition.rightToLeft,
+        );
       },
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -239,7 +201,7 @@ class ChatListHeader extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        user!.name!,
+                        user!,
                         style: HLFTextTheme.kNameTextStyle,
                       ),
                       SizedBox(height: 3),
@@ -264,7 +226,7 @@ class ChatListHeader extends StatelessWidget {
                       width: 7,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: user!.isOnline! ? Colors.green : Colors.grey,
+                        color: Colors.grey,
                       ),
                     )
                   ],
