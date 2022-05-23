@@ -10,7 +10,7 @@ import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:hlfchat/providers/chat_provider.dart';
 import 'package:hlfchat/themes/text_theme.dart';
 
-import 'models/user_model.dart';
+import '../models/user_model.dart';
 
 class ChatScreen extends StatelessWidget {
   final String? user;
