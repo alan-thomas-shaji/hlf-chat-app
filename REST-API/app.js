@@ -31,6 +31,7 @@ app.get("/", (req, res) => {
 //Creating a new user
 app.post("/users", (req, res) => {
   const newUser = new User({
+    _id: req.body.uuid,
     email: req.body.email,
     username: req.body.username,
   });
