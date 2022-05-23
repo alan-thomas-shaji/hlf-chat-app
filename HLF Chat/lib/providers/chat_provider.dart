@@ -5,8 +5,8 @@ import 'package:provider/provider.dart';
 
 class ChatProvider with ChangeNotifier {
   List<Message> messages = [];
-  final clientID = 'Navaneeth';
-  final List<String> otherUsers = ['Jeffin', 'Jobin', 'Alan'];
+  final clientID = 'Jobin';
+  final List<String> otherUsers = ['Jeffin', 'Navaneeth', 'Alan'];
 
   final IO.Socket socket = IO.io(
       'ws://msg-socket-server.herokuapp.com',
@@ -52,6 +52,25 @@ class ChatProvider with ChangeNotifier {
       text: message,
       senderID: clientID,
       receiverID: userName,
+      isMedia: false,
+      timestamp: DateTime.now(),
+    );
+    // addMessage(newMessage);
+  }
+
+  sendMedia(String userName, String url) {
+    socket.emit('media', {
+      'receiverChatID': userName,
+      'senderChatID': clientID,
+      'mediaUrl': url,
+      'timestamp': DateTime.now().toIso8601String(),
+    });
+    Message newMessage = Message(
+      text: url,
+      senderID: clientID,
+      receiverID: userName,
+      isMedia: true,
+      timestamp: DateTime.now(),
     );
     // addMessage(newMessage);
   }

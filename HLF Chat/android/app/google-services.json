@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "468000320017",
+    "project_id": "hlf-chat-app",
+    "storage_bucket": "hlf-chat-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:468000320017:android:86a7dc620cc2eacb7edfb0",
+        "android_client_info": {
+          "package_name": "com.example.hlfchat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "468000320017-cd323gtqk3vj2idsoo2omfic357ahtlm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.hlfchat",
+            "certificate_hash": "eba28d1198dfce8dea1fa7d8cfc9578177b3d6d7"
+          }
+        },
+        {
+          "client_id": "468000320017-qnu0t51uhckb0v59hqorbbgv84r8fa8m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCD5iZluWVqOyZ3UYY_h2y2xvJX9uM2VXA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "468000320017-qnu0t51uhckb0v59hqorbbgv84r8fa8m.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "468000320017-cfe3qecsv7bs3ebilcaq6m546b8cjoa0.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.hlfchat"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
