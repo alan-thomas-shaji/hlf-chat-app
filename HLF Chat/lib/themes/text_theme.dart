@@ -51,7 +51,7 @@ class HLFTextTheme {
       fontSize: 15,
       fontWeight: FontWeight.w400,
       height: 1.2,
-      color: Colors.black,
+      color: Colors.white,
     ),
   );
 }

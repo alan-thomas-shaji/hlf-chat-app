@@ -5,8 +5,8 @@ import 'package:provider/provider.dart';
 
 class ChatProvider with ChangeNotifier {
   List<Message> messages = [];
-  final clientID = 'Navaneeth';
-  final List<String> otherUsers = ['Jeffin', 'Jobin', 'Alan'];
+  final clientID = 'Jobin';
+  final List<String> otherUsers = ['Jeffin', 'Navaneeth', 'Alan'];
 
   final IO.Socket socket = IO.io(
       'ws://msg-socket-server.herokuapp.com',

@@ -102,7 +102,7 @@ class ChatScreen extends StatelessWidget {
             Container(
               height: 45,
               width: Get.width * 0.94,
-              padding: EdgeInsets.all(11),
+              padding: EdgeInsets.all(12),
               margin: EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: Color.fromARGB(255, 217, 219, 228),
@@ -118,7 +118,8 @@ class ChatScreen extends StatelessWidget {
                   hintStyle: HLFTextTheme.kTypeTextStyle,
                   contentPadding: EdgeInsets.all(14),
                   suffixIcon: SizedBox(
-                    width: 50,
+                    width: 55,
+                    height: 25,
                     child: Row(
                       children: [
                         InkWell(
@@ -175,14 +176,16 @@ class MessageBubble extends StatelessWidget {
           child: Container(
             margin:
                 EdgeInsets.fromLTRB(isMe! ? 70 : 14, 10, isMe! ? 14 : 70, 1),
-            padding: EdgeInsets.all(8),
+            padding: EdgeInsets.all(10),
             child: Text(
               text!,
               softWrap: true,
               style: HLFTextTheme.kChatTextStyle,
             ),
             decoration: BoxDecoration(
-              color: isMe! ? Colors.cyan : Color.fromARGB(255, 180, 180, 180),
+              color: isMe!
+                  ? Color.fromARGB(255, 255, 101, 101)
+                  : Color.fromARGB(255, 55, 55, 55),
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(10),
                 topRight: Radius.circular(10),
