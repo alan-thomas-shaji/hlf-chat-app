@@ -3,13 +3,13 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:hlfchat/chat_screen.dart';
+import 'package:hlfchat/screens/chat_screen.dart';
 import 'package:hlfchat/providers/chat_provider.dart';
 
 import 'package:hlfchat/themes/text_theme.dart';
 import 'package:provider/provider.dart';
 
-import 'models/user_model.dart';
+import '../models/user_model.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
