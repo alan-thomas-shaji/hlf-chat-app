@@ -1,31 +1,13 @@
 require("dotenv").config();
 const app = require("express")();
 const http = require("http").createServer(app);
-const io = require("socket.io")(http);
-const mongoose = require("mongoose");
-const { msgSchema, userSchema } = require("./mongodb/schema");
-
-console.log(process.env.MONGODB_PASSWD);
-
-mongoose.connect(
-  "mongodb+srv://admin-nkes:" +
-    process.env.MONGODB_PASSWD +
-    "@cluster0.wx7lg.mongodb.net/msgDB",
-  { useNewUrlParser: true }
-);
-
-const Message = mongoose.model("Message", msgSchema);
-const User = mongoose.model("User", userSchema);
-
-// const admin = new User({
-//   email: "admin-user@gmail.com",
-//   username: "admin"
-// })
-
-// admin.save();
+const io = require("socket.io")(http, {
+  cors: { origin: "*:*" },
+  serveClient: false,
+});
 
 app.get("/", (req, res) => {
-  res.send("<h1>Hello world</h1>");
+  res.send("Server running.");
 });
 
 // io.on('connection', (socket) => {
@@ -55,14 +37,16 @@ io.on("connection", (socket) => {
     console.log(data);
 
     //Send message to only that particular room
-    socket.emit("receive_message", {
-      'content': message,
-      'senderChatID': senderChatID,
-      'receiverChatID': receiverChatID,
+    io.emit("receive_message", {
+      content: message,
+      senderChatID: senderChatID,
+      receiverChatID: receiverChatID,
     });
   });
 });
 
-http.listen(3001, "0.0.0.0", () => {
-  console.log("listening on: 3001");
+const PORT = process.env.PORT || 3001;
+
+http.listen(PORT, () => {
+  console.log(`Server up and running on port: ${PORT}`);
 });
