@@ -7,10 +7,10 @@ const app = express();
 
 //Connecting MongoDB
 mongoose.connect(
-  "mongodb://localhost:27017/msgDB",
-  //   "mongodb+srv://admin-nkes:" +
-  //     process.env.MONGODB_PASSWD +
-  //     "@cluster0.wx7lg.mongodb.net/msgDB",
+  // "mongodb://localhost:27017/msgDB",
+  "mongodb+srv://admin-nkes:" +
+    process.env.MONGODB_PASSWD +
+    "@cluster0.wx7lg.mongodb.net/msgDB",
   { useNewUrlParser: true }
 );
 
