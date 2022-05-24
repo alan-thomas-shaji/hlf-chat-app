@@ -1,6 +1,8 @@
 class User {
-  String name;
-  String chatID;
+  String? name;
+  String? email;
+  String? userID;
+  String? photoUrl;
 
-  User(this.name, this.chatID);
+  User({this.name, this.email, this.userID});
 }

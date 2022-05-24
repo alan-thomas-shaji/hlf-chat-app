@@ -3,13 +3,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:hlfchat/providers/user_provider.dart';
 import 'package:hlfchat/screens/chat_screen.dart';
 import 'package:hlfchat/providers/chat_provider.dart';
 
 import 'package:hlfchat/themes/text_theme.dart';
 import 'package:provider/provider.dart';
-
-import '../models/user_model.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -20,48 +19,12 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   List<bool> bottomNav = [true, false, false, false];
-  List<User1> users = [
-    User1(name: 'Jeffin', isOnline: false, messages: [
-      Message1(
-        content: 'Hi',
-        timestamp: DateTime.utc(2022, 1, 1, 12, 40),
-        isMe: true,
-      ),
-      Message1(
-        content: 'Hello',
-        timestamp: DateTime.utc(2022, 1, 1, 12, 41),
-        isMe: false,
-      ),
-    ]),
-    User1(name: 'Navaneeth', isOnline: true, messages: [
-      Message1(
-        content: 'Hi',
-        timestamp: DateTime.utc(2022, 1, 1, 12, 40),
-        isMe: true,
-      ),
-      Message1(
-        content: 'Hello',
-        timestamp: DateTime.utc(2022, 1, 1, 12, 41),
-        isMe: false,
-      ),
-    ]),
-    User1(name: 'Alan', isOnline: true, messages: [
-      Message1(
-        content: 'Hi',
-        timestamp: DateTime.utc(2022, 1, 1, 12, 40),
-        isMe: true,
-      ),
-      Message1(
-        content: 'Hello',
-        timestamp: DateTime.utc(2022, 1, 1, 12, 41),
-        isMe: false,
-      ),
-    ]),
-  ];
 
   @override
   void initState() {
     Provider.of<ChatProvider>(context, listen: false).socketInit();
+    Provider.of<ChatProvider>(context, listen: false).getData();
+    Provider.of<UserProvider>(context, listen: false).getData();
     super.initState();
   }
 
@@ -74,11 +37,16 @@ class _HomeState extends State<Home> {
           style: HLFTextTheme.kSubHeadTextStyle,
         ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: CircleAvatar(
-              backgroundImage: AssetImage('assets/images/avatar.jpg'),
-              radius: 18,
+          Consumer<UserProvider>(
+            builder: (context, userProvider, child) => Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: GestureDetector(
+                onTap: () => userProvider.signOutFromGoogle(),
+                child: CircleAvatar(
+                  backgroundImage: NetworkImage(userProvider.user.photoURL!),
+                  radius: 18,
+                ),
+              ),
             ),
           )
         ],
@@ -88,12 +56,16 @@ class _HomeState extends State<Home> {
       body: Consumer<ChatProvider>(
         builder: (context, chatProvider, child) => Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: [
-              ChatListHeader(user: chatProvider.otherUsers[0]),
-              ChatListHeader(user: chatProvider.otherUsers[1]),
-              ChatListHeader(user: chatProvider.otherUsers[2]),
-            ],
+          child: Container(
+            width: Get.width,
+            child: ListView.builder(
+              itemCount: chatProvider.otherUsers.length,
+              itemBuilder: (context, index) {
+                return ChatListHeader(
+                  user: chatProvider.otherUsers[index],
+                );
+              },
+            ),
           ),
         ),
       ),

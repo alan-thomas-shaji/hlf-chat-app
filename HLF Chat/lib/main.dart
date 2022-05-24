@@ -1,14 +1,21 @@
-import 'dart:developer';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:hlfchat/screens/signup.dart';
 import 'package:provider/provider.dart';
+import 'firebase_options.dart';
 import 'screens/home.dart';
 import 'providers/chat_provider.dart';
 import 'providers/other_provider.dart';
 import 'providers/user_provider.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await GetStorage.init();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(
     MultiProvider(
       providers: [
@@ -29,7 +36,7 @@ class MyMaterial extends StatelessWidget {
       home: Consumer2<OtherProvider, UserProvider>(
         builder: (context, otherProvider, userProvider, child) {
           otherProvider.getPermission();
-          return Home();
+          return userProvider.getAuthState() ? Home() : SignUp();
         },
       ),
     );

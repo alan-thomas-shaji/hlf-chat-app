@@ -1,17 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:hlfchat/models/message.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:provider/provider.dart';
 
 class ChatProvider with ChangeNotifier {
+  bool isLoading = false;
+  bool isChatListEmpty = true;
   List<Message> messages = [];
-  final clientID = 'Jobin';
+  late String clientID;
   final List<String> otherUsers = ['Jeffin', 'Navaneeth', 'Alan'];
 
   final IO.Socket socket = IO.io(
       'ws://msg-socket-server.herokuapp.com',
       IO.OptionBuilder()
           .setTransports(['websocket']).setQuery({'chatID': 'Jobin'}).build());
+
+  getData() {
+    final box = GetStorage();
+    clientID = box.read('userID');
+    
+  }
 
   socketInit() {
     print("Socket init");

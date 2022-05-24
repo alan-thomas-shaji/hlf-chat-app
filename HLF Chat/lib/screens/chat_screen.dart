@@ -10,8 +10,6 @@ import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:hlfchat/providers/chat_provider.dart';
 import 'package:hlfchat/themes/text_theme.dart';
 
-import '../models/user_model.dart';
-
 class ChatScreen extends StatelessWidget {
   final String? user;
   ChatScreen({
@@ -182,7 +180,7 @@ class MessageBubble extends StatelessWidget {
               style: HLFTextTheme.kChatTextStyle,
             ),
             decoration: BoxDecoration(
-              color: isMe! ? Colors.cyan : Color.fromARGB(255, 180, 180, 180),
+              color: isMe! ? Color.fromARGB(255, 255, 112, 87) : Color.fromARGB(255, 180, 180, 180),
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(10),
                 topRight: Radius.circular(10),
