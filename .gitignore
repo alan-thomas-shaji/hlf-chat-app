@@ -1,5 +1,6 @@
 .vscode/
 Node/.gitignore
+git
 # Logs
 logs
 *.log

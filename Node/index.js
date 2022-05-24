@@ -1,6 +1,8 @@
 require("dotenv").config();
 const app = require("express")();
+const axios = require("axios");
 const http = require("http").createServer(app);
+const { uploadImage } = require("./aws-upload");
 const io = require("socket.io")(http, {
   cors: { origin: "*:*" },
   serveClient: false,
@@ -28,19 +30,53 @@ io.on("connection", (socket) => {
     socket.leave(chatID);
   });
 
+  socket.on("media", (data) => {
+    const mediaUrl = uploadImage(data.image);
+    axios
+      .post(process.env.REST_API_URL + "messages/" + chatID, {
+        sender: data.senderChatID,
+        receiver: data.receiverChatID,
+        content: mediaUrl,
+        timestamp: data.timestamp,
+        isMedia: false,
+      })
+      .then((response) => {
+        console.log(response);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+
+    io.emit("receive_message", {
+      content: mediaUrl,
+      senderChatID: data.senderChatID,
+      receiverChatID: data.receiverChatID,
+    });
+  });
+
   //Send message to only a particular user
   socket.on("message", (data) => {
-    receiverChatID = data.receiverChatID;
-    senderChatID = data.senderChatID;
-    content = "message.content";
-    message = data.message;
     console.log(data);
+    axios
+      .post(process.env.REST_API_URL + "messages/" + chatID, {
+        sender: data.senderChatID,
+        receiver: data.receiverChatID,
+        content: data.message,
+        timestamp: data.timestamp,
+        isMedia: false,
+      })
+      .then((response) => {
+        console.log(response);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
 
     //Send message to only that particular room
     io.emit("receive_message", {
-      content: message,
-      senderChatID: senderChatID,
-      receiverChatID: receiverChatID,
+      content: data.message,
+      senderChatID: data.senderChatID,
+      receiverChatID: data.receiverChatID,
     });
   });
 });

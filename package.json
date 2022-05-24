@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "aws-sdk": "^2.1140.0",
     "express": "^4.17.3",
     "http": "^0.0.1-security",
     "nodemon": "^2.0.15",
