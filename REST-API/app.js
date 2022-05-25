@@ -1,16 +1,24 @@
 require("dotenv").config();
+var log4js = require("log4js");
+var logger = log4js.getLogger();
 const express = require("express");
+const axios = require("axios");
 const mongoose = require("mongoose");
 var bodyParser = require("body-parser");
+var cors = require("cors");
+const { parse, stringify, toJSON, fromJSON } = require("flatted");
 const { msgSchema, userSchema, chatIDSchema } = require("./schemas/schema.js");
+const { nanoid } = require("nanoid");
 const app = express();
+
+logger.level = "debug";
 
 //Connecting MongoDB
 mongoose.connect(
-  // "mongodb://localhost:27017/msgDB",
-  "mongodb+srv://admin-nkes:" +
-    process.env.MONGODB_PASSWD +
-    "@cluster0.wx7lg.mongodb.net/msgDB",
+  "mongodb://localhost:27017/msgDB",
+  // "mongodb+srv://admin-nkes:" +
+  //   process.env.MONGODB_PASSWD +
+  //   "@cluster0.wx7lg.mongodb.net/msgDB",
   { useNewUrlParser: true }
 );
 
@@ -21,6 +29,10 @@ const Chat = mongoose.model("Chat", chatIDSchema);
 
 //Middlewares
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cors());
+
+let token =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTM0ODc0ODEsInVzZXJuYW1lIjoiTW9udSIsIm9yZ05hbWUiOiJPcmcxIiwiaWF0IjoxNjUzNDUxNDgxfQ.i2hIHG1nnAYW4fniCLC4ZFwB4OWmW9t6-pSdCt1fBaU";
 
 //Routes
 //Home Route
@@ -31,12 +43,44 @@ app.get("/", (req, res) => {
 //Creating a new user
 app.post("/users", (req, res) => {
   const newUser = new User({
+    _id: req.body.uuid, //req.body.uuid
     email: req.body.email,
     username: req.body.username,
   });
   newUser.save();
 
-  res.send(`Successfully added user: ${newUser}`);
+  const config = {
+    headers: { Authorization: `Bearer ${token}` },
+  };
+
+  axios
+    .post(
+      process.env.NGROK_URL + "/users",
+      {
+        username:
+          String(req.body.uuid) +
+          "_" +
+          String(req.body.email) +
+          "_" +
+          String(req.body.username),
+        orgName: "Org1",
+      },
+      config
+    )
+    .then((response) => {
+      const token = toJSON(response)[37].replaceAll(`"`, "");
+      logger.info("Use enrollment success with JWT token: " + token);
+    })
+    .catch((error) => {
+      logger.debug("Error: " + stringify(error));
+    });
+
+  const response = {
+    userObject: newUser,
+    token: token,
+  };
+
+  res.send(JSON.stringify(response));
 });
 
 //Getting a user of userId
@@ -84,6 +128,15 @@ app.post("/messages/chat-id/init", (req, res) => {
   );
 });
 
+app.get("/message/:messageId", (req, res) => {
+  Message.findOne({ _id: req.params.messageId }, (err, foundMessage) => {
+    if (err) {
+      res.send(err);
+    }
+    res.send(foundMessage);
+  });
+});
+
 //Getting the ID of the chat by chatId
 app.get("/messages/:chatId", (req, res) => {
   Chat.find({ _id: req.params.chatId }, (err, foundChat) => {
@@ -105,12 +158,48 @@ app.post("/messages/:chatId", (req, res) => {
       sender: req.body.sender,
       receiver: req.body.receiver,
       content: req.body.content,
+      deviceMAC: req.body.deviceMAC,
       timestamp: req.body.timestamp,
       isMedia: req.body.isMedia,
     });
 
     foundChat.messages.push(newMessage);
     foundChat.save();
+    newMessage.save();
+
+    logger.info("Message ID: " + newMessage._id);
+
+    axios
+      .post(
+        process.env.NGROK_URL +
+          "/channels/mychannel/chaincodes/messagecontract",
+        {
+          fcn: "createMessage",
+          peers: ["peer0.org1.example.com"],
+          chaincodeName: "messagecontract",
+          channelName: "mychannel",
+          args: [
+            String(newMessage._id),
+            String(req.body.sender),
+            String(req.body.deviceMAC),
+            String(req.body.receiver),
+            String(req.body.content),
+            String(req.body.timestamp),
+          ],
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      .then((response) => {
+        logger.debug(stringify(response));
+      })
+      .catch((error) => {
+        logger.debug(stringify(error));
+      });
+
     res.send(
       `New message: ${newMessage} added to chatID: ${req.params.chatId}`
     );
