@@ -31,7 +31,7 @@ class ChatProvider with ChangeNotifier {
       });
     });
     socket.onConnectError((data) {
-      print('connect error ${data}');
+      print('connect error $data');
     });
     socket.on('receive_message', (jsonData) {
       var data = jsonData as Map<String, dynamic>;
@@ -61,6 +61,23 @@ class ChatProvider with ChangeNotifier {
       text: message,
       senderID: clientID,
       receiverID: userName,
+      isMedia: false,
+      timestamp: DateTime.now(),
+    );
+    // addMessage(newMessage);
+  }
+
+  forwardMessage(String receiverId, String message) {
+    socket.emit('forward', {
+      'receiverChatID': receiverId,
+      'senderChatID': clientID,
+      'message': message,
+      'timestamp': DateTime.now().toIso8601String(),
+    });
+    Message newMessage = Message(
+      text: message,
+      senderID: clientID,
+      receiverID: receiverId,
       isMedia: false,
       timestamp: DateTime.now(),
     );

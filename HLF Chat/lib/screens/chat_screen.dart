@@ -185,9 +185,11 @@ class MessageBubble extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 isMe! ? ForwardButton(isMe: isMe, message: text) : SizedBox(),
-                SizedBox(
-                  width: 12,
-                ),
+                isMe!
+                    ? SizedBox(
+                        width: 12,
+                      )
+                    : SizedBox(),
                 Container(
                   padding: EdgeInsets.all(10),
                   child: Text(
@@ -209,6 +211,11 @@ class MessageBubble extends StatelessWidget {
                     ),
                   ),
                 ),
+                isMe!
+                    ? SizedBox()
+                    : SizedBox(
+                        width: 12,
+                      ),
                 isMe! ? SizedBox() : ForwardButton(isMe: isMe, message: text),
               ],
             ),
@@ -230,7 +237,7 @@ class ForwardButton extends StatelessWidget {
   }) : super(key: key);
 
   forwardMessage(BuildContext context, bool isMe, String uid, String message) {
-    Provider.of<ChatProvider>(context, listen: false).sendMessage(
+    Provider.of<ChatProvider>(context, listen: false).forwardMessage(
       uid,
       message,
     );
