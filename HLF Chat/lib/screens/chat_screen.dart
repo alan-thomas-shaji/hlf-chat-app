@@ -11,6 +11,8 @@ import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:hlfchat/providers/chat_provider.dart';
 import 'package:hlfchat/themes/text_theme.dart';
 
+import '../providers/user_provider.dart';
+
 class ChatScreen extends StatelessWidget {
   final UserModel? user;
   ChatScreen({
@@ -90,7 +92,7 @@ class ChatScreen extends StatelessWidget {
                       itemBuilder: (context, index) {
                         return MessageBubble(
                           text: msgs[index].text!,
-                          isMe: msgs[index].senderID != user,
+                          isMe: msgs[index].senderID != user!.userID!,
                         );
                       },
                     ),
@@ -173,29 +175,148 @@ class MessageBubble extends StatelessWidget {
         Flexible(
           flex: 6,
           child: Container(
-            margin:
-                EdgeInsets.fromLTRB(isMe! ? 70 : 14, 10, isMe! ? 14 : 70, 1),
-            padding: EdgeInsets.all(10),
-            child: Text(
-              text!,
-              softWrap: true,
-              style: HLFTextTheme.kChatTextStyle,
+            margin: EdgeInsets.fromLTRB(
+              isMe! ? 70 : 14,
+              10,
+              isMe! ? 14 : 70,
+              2,
             ),
-            decoration: BoxDecoration(
-              color: isMe!
-                  ? Color.fromARGB(255, 255, 101, 101)
-                  : Color.fromARGB(255, 55, 55, 55),
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(10),
-                topRight: Radius.circular(10),
-                bottomLeft: isMe! ? Radius.circular(10) : Radius.circular(0),
-                bottomRight: isMe! ? Radius.circular(0) : Radius.circular(10),
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                isMe! ? ForwardButton(isMe: isMe, message: text) : SizedBox(),
+                SizedBox(
+                  width: 12,
+                ),
+                Container(
+                  padding: EdgeInsets.all(10),
+                  child: Text(
+                    text!,
+                    softWrap: true,
+                    style: HLFTextTheme.kChatTextStyle,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isMe!
+                        ? Color.fromARGB(255, 255, 101, 101)
+                        : Color.fromARGB(255, 55, 55, 55),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(10),
+                      topRight: Radius.circular(10),
+                      bottomLeft:
+                          isMe! ? Radius.circular(10) : Radius.circular(0),
+                      bottomRight:
+                          isMe! ? Radius.circular(0) : Radius.circular(10),
+                    ),
+                  ),
+                ),
+                isMe! ? SizedBox() : ForwardButton(isMe: isMe, message: text),
+              ],
             ),
           ),
         ),
         isMe! ? SizedBox() : Spacer(),
       ],
+    );
+  }
+}
+
+class ForwardButton extends StatelessWidget {
+  final String? message;
+  final bool? isMe;
+  const ForwardButton({
+    Key? key,
+    this.isMe,
+    this.message,
+  }) : super(key: key);
+
+  forwardMessage(BuildContext context, bool isMe, String uid, String message) {
+    Provider.of<ChatProvider>(context, listen: false).sendMessage(
+      uid,
+      message,
+    );
+    Get.back();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<UserProvider>(
+      builder: (context, userProvider, child) => GestureDetector(
+        onTap: (() {
+          showModalBottomSheet(
+              backgroundColor: Colors.transparent,
+              context: context,
+              builder: (_) {
+                return Container(
+                  height: 200,
+                  width: Get.width,
+                  padding: EdgeInsets.fromLTRB(12, 12, 12, 0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(12),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Send to:'),
+                      SizedBox(height: 10),
+                      Container(
+                        height: 160,
+                        width: Get.width,
+                        child: ListView.builder(
+                            itemCount: userProvider.otherUsers.length,
+                            itemBuilder: (context, index) {
+                              return GestureDetector(
+                                onTap: () => forwardMessage(
+                                  context,
+                                  isMe!,
+                                  userProvider.otherUsers[index].userID!,
+                                  message!,
+                                ),
+                                child: Container(
+                                  height: 48,
+                                  width: Get.width * 0.9,
+                                  padding: EdgeInsets.all(10),
+                                  margin: EdgeInsets.fromLTRB(0, 5, 0, 5),
+                                  decoration: BoxDecoration(
+                                    color: Color.fromARGB(255, 231, 236, 241),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      CircleAvatar(
+                                        backgroundImage: NetworkImage(
+                                            userProvider
+                                                .otherUsers[index].photoUrl!),
+                                        radius: 16,
+                                      ),
+                                      SizedBox(width: 10),
+                                      Text(userProvider.otherUsers[index].name!)
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }),
+                      ),
+                    ],
+                  ),
+                );
+              });
+        }),
+        child: Container(
+          height: 18,
+          width: 18,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.white,
+          ),
+          child: Icon(
+            Icons.arrow_forward,
+            size: 14,
+          ),
+        ),
+      ),
     );
   }
 }

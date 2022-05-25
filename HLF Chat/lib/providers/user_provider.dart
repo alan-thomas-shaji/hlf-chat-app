@@ -108,8 +108,6 @@ class UserProvider with ChangeNotifier {
 
   getOtherUsers() async {
     otherUsers = [];
-    isLoading = true;
-    notifyListeners();
     CollectionReference users = FirebaseFirestore.instance.collection('Users');
     FirebaseAuth auth = FirebaseAuth.instance;
     String uid = auth.currentUser!.uid.toString();
@@ -126,7 +124,6 @@ class UserProvider with ChangeNotifier {
             }
           },
         );
-        isLoading = false;
         notifyListeners();
       },
     );

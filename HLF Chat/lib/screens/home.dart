@@ -45,8 +45,11 @@ class _HomeState extends State<Home> {
               child: GestureDetector(
                 onTap: () => userProvider.signOutFromGoogle(),
                 child: CircleAvatar(
-                  backgroundImage: NetworkImage(userProvider.user.photoURL!),
                   radius: 18,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(30),
+                    child: Image.network(userProvider.user.photoURL!),
+                  ),
                 ),
               ),
             ),
@@ -179,8 +182,11 @@ class ChatListHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CircleAvatar(
-                  backgroundImage: NetworkImage(user!.photoUrl!),
                   radius: 25,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(30),
+                    child: Image.network(user!.photoUrl!),
+                  ),
                 ),
                 Spacer(flex: 1),
                 Padding(
