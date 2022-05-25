@@ -9,7 +9,7 @@ class ChatProvider with ChangeNotifier {
   bool isChatListEmpty = true;
   List<Message> messages = [];
   late String clientID;
-  final List<String> otherUsers = ['Jeffin', 'Navaneeth', 'Alan'];
+  
 
   final IO.Socket socket = IO.io(
       'ws://msg-socket-server.herokuapp.com',

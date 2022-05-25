@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:hlfchat/models/user.dart';
 import 'package:hlfchat/providers/user_provider.dart';
 import 'package:hlfchat/screens/chat_screen.dart';
 import 'package:hlfchat/providers/chat_provider.dart';
@@ -25,6 +26,7 @@ class _HomeState extends State<Home> {
     Provider.of<ChatProvider>(context, listen: false).socketInit();
     Provider.of<ChatProvider>(context, listen: false).getData();
     Provider.of<UserProvider>(context, listen: false).getData();
+    Provider.of<UserProvider>(context, listen: false).getOtherUsers();
     super.initState();
   }
 
@@ -53,21 +55,35 @@ class _HomeState extends State<Home> {
         elevation: 0,
         backgroundColor: Colors.transparent,
       ),
-      body: Consumer<ChatProvider>(
-        builder: (context, chatProvider, child) => Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Container(
-            width: Get.width,
-            child: ListView.builder(
-              itemCount: chatProvider.otherUsers.length,
-              itemBuilder: (context, index) {
-                return ChatListHeader(
-                  user: chatProvider.otherUsers[index],
-                );
-              },
-            ),
-          ),
-        ),
+      body: Consumer<UserProvider>(
+        builder: (context, userProvider, child) => userProvider.isLoading
+            ? Center(
+                child: SizedBox(
+                  height: 40,
+                  width: 40,
+                  child: CircularProgressIndicator(
+                    backgroundColor: Colors.transparent,
+                    color: Color.fromARGB(255, 255, 96, 96),
+                    strokeWidth: 3,
+                  ),
+                ),
+              )
+            : Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Container(
+                  width: Get.width,
+                  child: userProvider.otherUsers.isEmpty
+                      ? Center(child: Text('Nothing Here Yet'))
+                      : ListView.builder(
+                          itemCount: userProvider.otherUsers.length,
+                          itemBuilder: (context, index) {
+                            return ChatListHeader(
+                              user: userProvider.otherUsers[index],
+                            );
+                          },
+                        ),
+                ),
+              ),
       ),
       bottomNavigationBar: Container(
         padding: EdgeInsets.symmetric(horizontal: 38, vertical: 5),
@@ -131,7 +147,7 @@ class _HomeState extends State<Home> {
 }
 
 class ChatListHeader extends StatelessWidget {
-  final String? user;
+  final UserModel? user;
   const ChatListHeader({
     Key? key,
     this.user,
@@ -163,7 +179,7 @@ class ChatListHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CircleAvatar(
-                  backgroundImage: AssetImage('assets/images/avatar.jpg'),
+                  backgroundImage: NetworkImage(user!.photoUrl!),
                   radius: 25,
                 ),
                 Spacer(flex: 1),
@@ -173,7 +189,7 @@ class ChatListHeader extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        user!,
+                        user!.name!,
                         style: HLFTextTheme.kNameTextStyle,
                       ),
                       SizedBox(height: 3),

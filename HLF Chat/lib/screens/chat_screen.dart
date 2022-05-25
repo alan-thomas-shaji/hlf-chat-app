@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_connect/http/src/utils/utils.dart';
 import 'package:hlfchat/models/message.dart';
+import 'package:hlfchat/models/user.dart';
 import 'package:provider/provider.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
@@ -11,7 +12,7 @@ import 'package:hlfchat/providers/chat_provider.dart';
 import 'package:hlfchat/themes/text_theme.dart';
 
 class ChatScreen extends StatelessWidget {
-  final String? user;
+  final UserModel? user;
   ChatScreen({
     Key? key,
     this.user,
@@ -21,7 +22,7 @@ class ChatScreen extends StatelessWidget {
   tapHandle(BuildContext context) {
     if (messageController!.text.isNotEmpty) {
       Provider.of<ChatProvider>(context, listen: false).sendMessage(
-        user!,
+        user!.userID!,
         messageController!.text,
       );
       messageController!.clear();
@@ -44,7 +45,7 @@ class ChatScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CircleAvatar(
-                    backgroundImage: AssetImage('assets/images/avatar.jpg'),
+                    backgroundImage: NetworkImage(user!.photoUrl!),
                     radius: 22,
                   ),
                   Spacer(flex: 1),
@@ -54,7 +55,7 @@ class ChatScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          user!,
+                          user!.name!,
                           style: HLFTextTheme.kNameTextStyle,
                         ),
                         SizedBox(height: 3),
@@ -81,7 +82,7 @@ class ChatScreen extends StatelessWidget {
               child: Consumer<ChatProvider>(
                 builder: (context, chatProvider, child) {
                   List<Message> msgs = [];
-                  msgs = chatProvider.getMessages(user!);
+                  msgs = chatProvider.getMessages(user!.userID!);
                   return Container(
                     color: Color.fromARGB(255, 224, 225, 231),
                     child: ListView.builder(
