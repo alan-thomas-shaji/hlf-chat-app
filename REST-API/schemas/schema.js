@@ -13,6 +13,10 @@ const msgSchema = mongoose.Schema(
       type: String,
       required: [true, "where content"],
     },
+    deviceMAC: {
+      type: String,
+      required: [true, "where MAC Address"],
+    },
     timestamp: {
       type: Date,
       required: [true, "where is the time "],
@@ -20,6 +24,10 @@ const msgSchema = mongoose.Schema(
     isMedia: {
       type: Boolean,
       required: [true, "Ok "],
+    },
+    forwardCount: {
+      type: Number,
+      default: 0,
     },
   },
   {
@@ -29,6 +37,10 @@ const msgSchema = mongoose.Schema(
 
 const userSchema = mongoose.Schema(
   {
+    _id: {
+      type: String,
+      required: [true, "provide uuid"],
+    },
     email: {
       type: String,
       required: [true, "email where"],
