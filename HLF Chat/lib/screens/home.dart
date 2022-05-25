@@ -3,13 +3,13 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:hlfchat/models/user.dart';
+import 'package:hlfchat/providers/user_provider.dart';
 import 'package:hlfchat/screens/chat_screen.dart';
 import 'package:hlfchat/providers/chat_provider.dart';
 
 import 'package:hlfchat/themes/text_theme.dart';
 import 'package:provider/provider.dart';
-
-import '../models/user_model.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -20,48 +20,13 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   List<bool> bottomNav = [true, false, false, false];
-  List<User1> users = [
-    User1(name: 'Jeffin', isOnline: false, messages: [
-      Message1(
-        content: 'Hi',
-        timestamp: DateTime.utc(2022, 1, 1, 12, 40),
-        isMe: true,
-      ),
-      Message1(
-        content: 'Hello',
-        timestamp: DateTime.utc(2022, 1, 1, 12, 41),
-        isMe: false,
-      ),
-    ]),
-    User1(name: 'Navaneeth', isOnline: true, messages: [
-      Message1(
-        content: 'Hi',
-        timestamp: DateTime.utc(2022, 1, 1, 12, 40),
-        isMe: true,
-      ),
-      Message1(
-        content: 'Hello',
-        timestamp: DateTime.utc(2022, 1, 1, 12, 41),
-        isMe: false,
-      ),
-    ]),
-    User1(name: 'Alan', isOnline: true, messages: [
-      Message1(
-        content: 'Hi',
-        timestamp: DateTime.utc(2022, 1, 1, 12, 40),
-        isMe: true,
-      ),
-      Message1(
-        content: 'Hello',
-        timestamp: DateTime.utc(2022, 1, 1, 12, 41),
-        isMe: false,
-      ),
-    ]),
-  ];
 
   @override
   void initState() {
     Provider.of<ChatProvider>(context, listen: false).socketInit();
+    Provider.of<ChatProvider>(context, listen: false).getData();
+    Provider.of<UserProvider>(context, listen: false).getData();
+    Provider.of<UserProvider>(context, listen: false).getOtherUsers();
     super.initState();
   }
 
@@ -74,28 +39,54 @@ class _HomeState extends State<Home> {
           style: HLFTextTheme.kSubHeadTextStyle,
         ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: CircleAvatar(
-              backgroundImage: AssetImage('assets/images/avatar.jpg'),
-              radius: 18,
+          Consumer<UserProvider>(
+            builder: (context, userProvider, child) => Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: GestureDetector(
+                onTap: () => userProvider.signOutFromGoogle(),
+                child: CircleAvatar(
+                  radius: 18,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(30),
+                    child: Image.network(userProvider.user.photoURL!),
+                  ),
+                ),
+              ),
             ),
           )
         ],
         elevation: 0,
         backgroundColor: Colors.transparent,
       ),
-      body: Consumer<ChatProvider>(
-        builder: (context, chatProvider, child) => Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: [
-              ChatListHeader(user: chatProvider.otherUsers[0]),
-              ChatListHeader(user: chatProvider.otherUsers[1]),
-              ChatListHeader(user: chatProvider.otherUsers[2]),
-            ],
-          ),
-        ),
+      body: Consumer<UserProvider>(
+        builder: (context, userProvider, child) => userProvider.isLoading
+            ? Center(
+                child: SizedBox(
+                  height: 40,
+                  width: 40,
+                  child: CircularProgressIndicator(
+                    backgroundColor: Colors.transparent,
+                    color: Color.fromARGB(255, 255, 96, 96),
+                    strokeWidth: 3,
+                  ),
+                ),
+              )
+            : Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Container(
+                  width: Get.width,
+                  child: userProvider.otherUsers.isEmpty
+                      ? Center(child: Text('Nothing Here Yet'))
+                      : ListView.builder(
+                          itemCount: userProvider.otherUsers.length,
+                          itemBuilder: (context, index) {
+                            return ChatListHeader(
+                              user: userProvider.otherUsers[index],
+                            );
+                          },
+                        ),
+                ),
+              ),
       ),
       bottomNavigationBar: Container(
         padding: EdgeInsets.symmetric(horizontal: 38, vertical: 5),
@@ -159,7 +150,7 @@ class _HomeState extends State<Home> {
 }
 
 class ChatListHeader extends StatelessWidget {
-  final String? user;
+  final UserModel? user;
   const ChatListHeader({
     Key? key,
     this.user,
@@ -191,8 +182,11 @@ class ChatListHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CircleAvatar(
-                  backgroundImage: AssetImage('assets/images/avatar.jpg'),
                   radius: 25,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(30),
+                    child: Image.network(user!.photoUrl!),
+                  ),
                 ),
                 Spacer(flex: 1),
                 Padding(
@@ -201,7 +195,7 @@ class ChatListHeader extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        user!,
+                        user!.name!,
                         style: HLFTextTheme.kNameTextStyle,
                       ),
                       SizedBox(height: 3),
