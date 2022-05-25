@@ -9,7 +9,6 @@ class ChatProvider with ChangeNotifier {
   bool isChatListEmpty = true;
   List<Message> messages = [];
   late String clientID;
-  
 
   final IO.Socket socket = IO.io(
       'ws://msg-socket-server.herokuapp.com',
@@ -19,7 +18,6 @@ class ChatProvider with ChangeNotifier {
   getData() {
     final box = GetStorage();
     clientID = box.read('userID');
-    
   }
 
   socketInit() {
@@ -55,6 +53,7 @@ class ChatProvider with ChangeNotifier {
       'receiverChatID': userName,
       'senderChatID': clientID,
       'message': message,
+      'isMedia': false,
       'timestamp': DateTime.now().toIso8601String(),
     });
     Message newMessage = Message(
@@ -72,6 +71,7 @@ class ChatProvider with ChangeNotifier {
       'receiverChatID': receiverId,
       'senderChatID': clientID,
       'message': message,
+      'isMedia': false,
       'timestamp': DateTime.now().toIso8601String(),
     });
     Message newMessage = Message(

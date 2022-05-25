@@ -103,7 +103,7 @@ class ChatScreen extends StatelessWidget {
             Container(
               height: 45,
               width: Get.width * 0.94,
-              padding: EdgeInsets.all(12),
+              padding: EdgeInsets.symmetric(vertical: 3, horizontal: 14),
               margin: EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: Color.fromARGB(255, 217, 219, 228),
@@ -115,29 +115,30 @@ class ChatScreen extends StatelessWidget {
                 maxLines: 1,
                 decoration: InputDecoration(
                   border: InputBorder.none,
-                  hintText: 'Type a message...',
+                  hintText: 'Type a message',
                   hintStyle: HLFTextTheme.kTypeTextStyle,
-                  contentPadding: EdgeInsets.all(14),
+                  contentPadding:
+                      EdgeInsets.symmetric(vertical: 5, horizontal: 3),
                   suffixIcon: SizedBox(
-                    width: 55,
+                    width: 56,
                     height: 25,
                     child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         InkWell(
                           onTap: () {},
                           child: Image.asset(
                             'assets/icons/attachment.png',
-                            width: 18,
+                            width: 20,
                           ),
                         ),
-                        SizedBox(width: 10),
                         InkWell(
                           onTap: () {
                             tapHandle(context);
                           },
                           child: Image.asset(
                             'assets/icons/send.png',
-                            width: 18,
+                            width: 20,
                           ),
                         ),
                       ],
