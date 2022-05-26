@@ -39,6 +39,7 @@ class ChatProvider with ChangeNotifier {
         text: data['content'],
         senderID: data['senderChatID'],
         receiverID: data['receiverChatID'],
+        isMedia: data['isMedia'],
       );
       addMessage(message);
       notifyListeners();
@@ -48,54 +49,37 @@ class ChatProvider with ChangeNotifier {
     socket.on('fromServer', (_) => print(_));
   }
 
-  sendMessage(String userName, String message) {
+  sendMessage(String userName, String message, bool isMedia) {
     socket.emit('message', {
       'receiverChatID': userName,
       'senderChatID': clientID,
       'message': message,
-      'isMedia': false,
+      'isMedia': isMedia,
       'timestamp': DateTime.now().toIso8601String(),
     });
     Message newMessage = Message(
       text: message,
       senderID: clientID,
       receiverID: userName,
-      isMedia: false,
+      isMedia: isMedia,
       timestamp: DateTime.now(),
     );
     // addMessage(newMessage);
   }
 
-  forwardMessage(String receiverId, String message) {
+  forwardMessage(String receiverId, String message, bool isMedia) {
     socket.emit('forward', {
       'receiverChatID': receiverId,
       'senderChatID': clientID,
       'message': message,
-      'isMedia': false,
+      'isMedia': isMedia,
       'timestamp': DateTime.now().toIso8601String(),
     });
     Message newMessage = Message(
       text: message,
       senderID: clientID,
       receiverID: receiverId,
-      isMedia: false,
-      timestamp: DateTime.now(),
-    );
-    // addMessage(newMessage);
-  }
-
-  sendMedia(String userName, String url) {
-    socket.emit('media', {
-      'receiverChatID': userName,
-      'senderChatID': clientID,
-      'mediaUrl': url,
-      'timestamp': DateTime.now().toIso8601String(),
-    });
-    Message newMessage = Message(
-      text: url,
-      senderID: clientID,
-      receiverID: userName,
-      isMedia: true,
+      isMedia: isMedia,
       timestamp: DateTime.now(),
     );
     // addMessage(newMessage);
