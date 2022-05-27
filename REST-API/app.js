@@ -14,13 +14,19 @@ const app = express();
 logger.level = "debug";
 
 //Connecting MongoDB
-mongoose.connect(
-  "mongodb://localhost:27017/msgDB",
-  // "mongodb+srv://admin-nkes:" +
-  //   process.env.MONGODB_PASSWD +
-  //   "@cluster0.wx7lg.mongodb.net/msgDB",
-  { useNewUrlParser: true }
-);
+if (Boolean(process.env.PRODUCTION)) {
+  //Checking if production env or not
+  mongoose.connect(
+    "mongodb+srv://admin-nkes:" +
+      process.env.MONGODB_PASSWD +
+      "@cluster0.wx7lg.mongodb.net/msgDB",
+    { useNewUrlParser: true }
+  );
+} else {
+  mongoose.connect("mongodb://localhost:27017/msgDB", {
+    useNewUrlParser: true,
+  });
+}
 
 //Creating Mongoose Models
 const Message = mongoose.model("Message", msgSchema);
@@ -28,7 +34,8 @@ const User = mongoose.model("User", userSchema);
 const Chat = mongoose.model("Chat", chatIDSchema);
 
 //Middlewares
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
 let token =
@@ -49,31 +56,31 @@ app.post("/users", (req, res) => {
   });
   newUser.save();
 
-  const config = {
-    headers: { Authorization: `Bearer ${token}` },
-  };
-
-  axios
-    .post(
-      process.env.NGROK_URL + "/users",
-      {
-        username:
-          String(req.body.uuid) +
-          "_" +
-          String(req.body.email) +
-          "_" +
-          String(req.body.username),
-        orgName: "Org1",
-      },
-      config
-    )
-    .then((response) => {
-      const token = toJSON(response)[37].replaceAll(`"`, "");
-      logger.info("Use enrollment success with JWT token: " + token);
-    })
-    .catch((error) => {
-      logger.debug("Error: " + stringify(error));
-    });
+  // const config = {
+  //   headers: { Authorization: `Bearer ${token}` },
+  // };
+  //
+  // axios
+  //   .post(
+  //     process.env.NGROK_URL + "/users",
+  //     {
+  //       username:
+  //         String(req.body.uuid) +
+  //         "_" +
+  //         String(req.body.email) +
+  //         "_" +
+  //         String(req.body.username),
+  //       orgName: "Org1",
+  //     },
+  //     config
+  //   )
+  //   .then((response) => {
+  //     const token = toJSON(response)[37].replaceAll(`"`, "");
+  //     logger.info("Use enrollment success with JWT token: " + token);
+  //   })
+  //   .catch((error) => {
+  //     logger.debug("Error: " + stringify(error));
+  //   });
 
   const response = {
     userObject: newUser,
@@ -83,9 +90,19 @@ app.post("/users", (req, res) => {
   res.send(JSON.stringify(response));
 });
 
+app.get("/users", (req, res) => {
+  User.find((err, users) => {
+    if (err) {
+      res.send(err);
+    }
+
+    res.send(users);
+  });
+});
+
 //Getting a user of userId
 app.get("/users/:userId", (req, res) => {
-  User.find({ username: req.params.userId }, (err, foundUser) => {
+  User.find({ _id: req.params.userId }, (err, foundUser) => {
     if (err) {
       res.send(err);
     }
@@ -128,6 +145,15 @@ app.post("/messages/chat-id/init", (req, res) => {
   );
 });
 
+app.get("/messages", (req, res) => {
+  Message.find((err, messages) => {
+    if (err) {
+      res.send(err);
+    }
+    res.send(messages);
+  });
+});
+
 app.get("/message/:messageId", (req, res) => {
   Message.findOne({ _id: req.params.messageId }, (err, foundMessage) => {
     if (err) {
@@ -145,6 +171,52 @@ app.get("/messages/:chatId", (req, res) => {
     }
     res.send(foundChat[0].messages);
   });
+});
+
+//Getting all messages by userId
+app.get("/messages/all/:userId", (req, res) => {
+  Message.find(
+    { $or: [{ sender: req.params.userId }, { receiver: req.params.userId }] },
+    (err, foundMessages) => {
+      if (err) {
+        res.send(err);
+      }
+      res.send(foundMessages);
+    }
+  );
+});
+
+app.post("/messages/create", (req, res) => {
+  console.log(req.body);
+  const newMessage = new Message({
+    sender: req.body.sender,
+    receiver: req.body.receiver,
+    content: req.body.content,
+    deviceMAC: req.body.deviceMAC,
+    timestamp: req.body.timestamp,
+    isMedia: req.body.isMedia,
+  });
+  newMessage.save((err) => {
+    if (err) {
+      res.send(err);
+    }
+    if (!err) {
+      res.send(JSON.stringify(newMessage));
+    }
+  });
+});
+
+app.patch("/messages/update/:messageId", (req, res) => {
+  Message.findByIdAndUpdate(
+    req.params.messageId,
+    { $set: req.body },
+    (err, updatedMessages) => {
+      if (err) {
+        res.send(err);
+      }
+      res.send(updatedMessages);
+    }
+  );
 });
 
 //Creating a message in the requested chatId
