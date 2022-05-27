@@ -1,50 +1,20 @@
 require("dotenv").config();
 const app = require("express")();
-const axios = require("axios");
-const Logger = require("nodemon/lib/utils/log");
 const http = require("http").createServer(app);
-const { uploadImage } = require("./aws-upload");
+// const { uploadImage } = require("./aws-upload");
+const {
+  createMessage,
+  getMessage,
+  patchMessage,
+} = require("./API/lib/message");
 const io = require("socket.io")(http, {
   cors: { origin: "*:*" },
   serveClient: false,
 });
 
-const createMessage = (data) => {
-  console.log(data);
-  axios
-    .post(process.env.REST_API_URL + "messages/" + chatID, {
-      sender: data.senderChatID,
-      receiver: data.receiverChatID,
-      content: data.message,
-      timestamp: data.timestamp,
-      isMedia: false,
-    })
-    .then((response) => {
-      console.log(response);
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-
-  //Send message to only that particular room
-  io.emit("receive_message", {
-    content: data.message,
-    senderChatID: data.senderChatID,
-    receiverChatID: data.receiverChatID,
-  });
-};
-
 app.get("/", (req, res) => {
   res.send("Server running.");
 });
-
-// io.on('connection', (socket) => {
-//   const username = socket.handshake.query.username;
-
-//   socket.on('message', (data) => {
-//     console.log(data);
-//   });
-// });
 
 io.on("connection", (socket) => {
   //Get the chatID of the user and join in a room of the same chatID
@@ -56,44 +26,49 @@ io.on("connection", (socket) => {
     socket.leave(chatID);
   });
 
-  socket.on("media", (data) => {
-    const mediaUrl = uploadImage(data.image);
-    axios
-      .post(process.env.REST_API_URL + "messages/" + chatID, {
-        sender: data.senderChatID,
-        receiver: data.receiverChatID,
-        content: mediaUrl,
-        timestamp: data.timestamp,
-        isMedia: false,
-      })
-      .then((response) => {
-        console.log(response);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+  socket.on("message", (data) => {
+    const message = {
+      sender: data.senderChatID,
+      receiver: data.receiverChatID,
+      content: data.message,
+      timestamp: data.timestamp,
+      deviceMAC: data.deviceMAC,
+      isMedia: false,
+    };
 
-    io.emit("receive_message", {
-      content: mediaUrl,
-      senderChatID: data.senderChatID,
-      receiverChatID: data.receiverChatID,
-    });
+    createMessage(message)
+      .then((response) => io.emit("receive_message", response.data))
+      .catch((error) => console.error(error));
   });
 
-  //Send message to only a particular user
-  socket.on("message", createMessage(data));
+  // socket.on("media", (data) => {
+  //   const mediaUrl = uploadImage(Buffer(data.image));
+  //   const mediaMessage = {
+  //     sender: data.senderChatID,
+  //     receiver: data.receiverChatID,
+  //     content: mediaUrl,
+  //     deviceMAC: data.deviceMAC,
+  //     timestamp: data.timestamp,
+  //     isMedia: false,
+  //   };
+
+  //   createMessage(mediaMessage)
+  //     .then((response) => io.emit("receive_message", response.data))
+  //     .catch((error) => console.error(error));
+  // });
 
   socket.on("forward", (data) => {
-    axios
-      .get(process.env.REST_API_URL + "message/" + data.messageID)
-      .then((resMessage) => {
-        resMessage.forwardCount += 1;
-        //some more code that is unaffecting to the chat to be added here.
-        createMessage(data);
+    getMessage(data.messageID)
+      .then((response) => {
+        let message = response.data;
+        message.forwardCount += 1;
+        patchMessage(String(message._id), {
+          forwardCount: message.forwardCount,
+        })
+          .then((response) => io.emit("receive_message", message))
+          .catch((error) => console.error(error));
       })
-      .catch((error) => {
-        console.log(error);
-      });
+      .catch((error) => console.log(error));
   });
 });
 
