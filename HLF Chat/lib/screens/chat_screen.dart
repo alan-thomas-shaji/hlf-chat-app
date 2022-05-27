@@ -107,7 +107,7 @@ class ChatScreen extends StatelessWidget {
                       itemCount: msgs.length,
                       itemBuilder: (context, index) {
                         return MessageBubble(
-                          text: msgs[index].text!,
+                          message: msgs[index],
                           isMedia: msgs[index].isMedia,
                           isMe: msgs[index].senderID != user!.userID!,
                         );
@@ -239,12 +239,12 @@ class ChatScreen extends StatelessWidget {
 }
 
 class MessageBubble extends StatelessWidget {
-  final String? text;
+  final Message? message;
   final bool? isMe;
   final bool? isMedia;
   const MessageBubble({
     Key? key,
-    this.text,
+    this.message,
     this.isMe,
     this.isMedia,
   }) : super(key: key);
@@ -268,7 +268,7 @@ class MessageBubble extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                isMe! ? ForwardButton(isMe: isMe, message: text) : SizedBox(),
+                isMe! ? ForwardButton(isMe: isMe, message: message) : SizedBox(),
                 isMe!
                     ? SizedBox(
                         width: 12,
@@ -282,16 +282,16 @@ class MessageBubble extends StatelessWidget {
                           width: 170,
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(8),
-                            child: text!.startsWith('http')
-                                ? Image.network(text!)
+                            child: message!.text!.startsWith('http')
+                                ? Image.network(message!.text!)
                                 : Image.file(
-                                    File(text!),
+                                    File(message!.text!),
                                     fit: BoxFit.fitWidth,
                                   ),
                           ),
                         )
                       : Text(
-                          text!,
+                          message!.text!,
                           softWrap: true,
                           style: HLFTextTheme.kChatTextStyle,
                         ),
@@ -314,7 +314,7 @@ class MessageBubble extends StatelessWidget {
                     : SizedBox(
                         width: 12,
                       ),
-                isMe! ? SizedBox() : ForwardButton(isMe: isMe, message: text),
+                isMe! ? SizedBox() : ForwardButton(isMe: isMe, message: message),
               ],
             ),
           ),
@@ -326,7 +326,7 @@ class MessageBubble extends StatelessWidget {
 }
 
 class ForwardButton extends StatelessWidget {
-  final String? message;
+  final Message? message;
   final bool? isMe;
   const ForwardButton({
     Key? key,
@@ -338,6 +338,7 @@ class ForwardButton extends StatelessWidget {
     BuildContext context,
     bool isMe,
     String uid,
+    String id,
     String message,
     bool isMedia,
   ) {
@@ -345,6 +346,7 @@ class ForwardButton extends StatelessWidget {
       uid,
       message,
       isMedia,
+      id,
     );
     Get.back();
   }
@@ -384,7 +386,8 @@ class ForwardButton extends StatelessWidget {
                                   context,
                                   isMe!,
                                   userProvider.otherUsers[index].userID!,
-                                  message!,
+                                  message!.id!,
+                                  message!.text!,
                                   false,
                                 ),
                                 child: Container(
