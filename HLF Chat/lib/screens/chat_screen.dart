@@ -1,12 +1,11 @@
-import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_connect/http/src/utils/utils.dart';
 import 'package:hlfchat/models/message.dart';
 import 'package:hlfchat/models/user.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 import 'package:hlfchat/providers/chat_provider.dart';
 import 'package:hlfchat/themes/text_theme.dart';
@@ -26,9 +25,26 @@ class ChatScreen extends StatelessWidget {
       Provider.of<ChatProvider>(context, listen: false).sendMessage(
         user!.userID!,
         messageController!.text,
+        false,
       );
       messageController!.clear();
     }
+  }
+
+  imagePicker(BuildContext context) async {
+    final ImagePicker _picker = ImagePicker();
+    final XFile? image =
+        await _picker.pickImage(source: ImageSource.gallery).then(
+      (value) {
+        print(value!.path);
+        Provider.of<ChatProvider>(context, listen: false).sendMessage(
+          user!.userID!,
+          value.path,
+          true,
+        );
+        Get.back();
+      },
+    );
   }
 
   @override
@@ -92,6 +108,7 @@ class ChatScreen extends StatelessWidget {
                       itemBuilder: (context, index) {
                         return MessageBubble(
                           text: msgs[index].text!,
+                          isMedia: msgs[index].isMedia,
                           isMe: msgs[index].senderID != user!.userID!,
                         );
                       },
@@ -103,7 +120,7 @@ class ChatScreen extends StatelessWidget {
             Container(
               height: 45,
               width: Get.width * 0.94,
-              padding: EdgeInsets.all(12),
+              padding: EdgeInsets.symmetric(vertical: 3, horizontal: 14),
               margin: EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: Color.fromARGB(255, 217, 219, 228),
@@ -115,29 +132,32 @@ class ChatScreen extends StatelessWidget {
                 maxLines: 1,
                 decoration: InputDecoration(
                   border: InputBorder.none,
-                  hintText: 'Type a message...',
+                  hintText: 'Type a message',
                   hintStyle: HLFTextTheme.kTypeTextStyle,
-                  contentPadding: EdgeInsets.all(14),
+                  contentPadding:
+                      EdgeInsets.symmetric(vertical: 5, horizontal: 3),
                   suffixIcon: SizedBox(
-                    width: 55,
+                    width: 56,
                     height: 25,
                     child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         InkWell(
-                          onTap: () {},
+                          onTap: () {
+                            mediaSelectBottomSheet(context);
+                          },
                           child: Image.asset(
                             'assets/icons/attachment.png',
-                            width: 18,
+                            width: 20,
                           ),
                         ),
-                        SizedBox(width: 10),
                         InkWell(
                           onTap: () {
                             tapHandle(context);
                           },
                           child: Image.asset(
                             'assets/icons/send.png',
-                            width: 18,
+                            width: 20,
                           ),
                         ),
                       ],
@@ -154,15 +174,79 @@ class ChatScreen extends StatelessWidget {
       ),
     );
   }
+
+  Future<dynamic> mediaSelectBottomSheet(BuildContext context) {
+    return showModalBottomSheet(
+      backgroundColor: Colors.transparent,
+      context: context,
+      builder: (_) {
+        return Container(
+          height: 130,
+          width: Get.width,
+          padding: EdgeInsets.fromLTRB(12, 12, 12, 0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(12),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Attachment:'),
+              SizedBox(height: 14),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  InkWell(
+                    onTap: () => imagePicker(context),
+                    child: Container(
+                      height: 60,
+                      width: 60,
+                      padding: EdgeInsets.all(15),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xffeeeeee),
+                      ),
+                      child: Image.asset(
+                        'assets/icons/image.png',
+                        fit: BoxFit.fitWidth,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 15),
+                  Container(
+                    height: 60,
+                    width: 60,
+                    padding: EdgeInsets.all(15),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Color(0xffeeeeee),
+                    ),
+                    child: Image.asset(
+                      'assets/icons/play.png',
+                      fit: BoxFit.fitWidth,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
 
 class MessageBubble extends StatelessWidget {
   final String? text;
   final bool? isMe;
+  final bool? isMedia;
   const MessageBubble({
     Key? key,
     this.text,
     this.isMe,
+    this.isMedia,
   }) : super(key: key);
 
   @override
@@ -185,16 +269,32 @@ class MessageBubble extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 isMe! ? ForwardButton(isMe: isMe, message: text) : SizedBox(),
-                SizedBox(
-                  width: 12,
-                ),
+                isMe!
+                    ? SizedBox(
+                        width: 12,
+                      )
+                    : SizedBox(),
                 Container(
-                  padding: EdgeInsets.all(10),
-                  child: Text(
-                    text!,
-                    softWrap: true,
-                    style: HLFTextTheme.kChatTextStyle,
-                  ),
+                  padding: EdgeInsets.all(8),
+                  child: isMedia!
+                      ? SizedBox(
+                          height: 170,
+                          width: 170,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: text!.startsWith('http')
+                                ? Image.network(text!)
+                                : Image.file(
+                                    File(text!),
+                                    fit: BoxFit.fitWidth,
+                                  ),
+                          ),
+                        )
+                      : Text(
+                          text!,
+                          softWrap: true,
+                          style: HLFTextTheme.kChatTextStyle,
+                        ),
                   decoration: BoxDecoration(
                     color: isMe!
                         ? Color.fromARGB(255, 255, 101, 101)
@@ -209,6 +309,11 @@ class MessageBubble extends StatelessWidget {
                     ),
                   ),
                 ),
+                isMe!
+                    ? SizedBox()
+                    : SizedBox(
+                        width: 12,
+                      ),
                 isMe! ? SizedBox() : ForwardButton(isMe: isMe, message: text),
               ],
             ),
@@ -229,10 +334,17 @@ class ForwardButton extends StatelessWidget {
     this.message,
   }) : super(key: key);
 
-  forwardMessage(BuildContext context, bool isMe, String uid, String message) {
-    Provider.of<ChatProvider>(context, listen: false).sendMessage(
+  forwardMessage(
+    BuildContext context,
+    bool isMe,
+    String uid,
+    String message,
+    bool isMedia,
+  ) {
+    Provider.of<ChatProvider>(context, listen: false).forwardMessage(
       uid,
       message,
+      isMedia,
     );
     Get.back();
   }
@@ -273,6 +385,7 @@ class ForwardButton extends StatelessWidget {
                                   isMe!,
                                   userProvider.otherUsers[index].userID!,
                                   message!,
+                                  false,
                                 ),
                                 child: Container(
                                   height: 48,

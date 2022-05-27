@@ -9,7 +9,6 @@ class ChatProvider with ChangeNotifier {
   bool isChatListEmpty = true;
   List<Message> messages = [];
   late String clientID;
-  
 
   final IO.Socket socket = IO.io(
       'ws://msg-socket-server.herokuapp.com',
@@ -19,7 +18,6 @@ class ChatProvider with ChangeNotifier {
   getData() {
     final box = GetStorage();
     clientID = box.read('userID');
-    
   }
 
   socketInit() {
@@ -31,7 +29,7 @@ class ChatProvider with ChangeNotifier {
       });
     });
     socket.onConnectError((data) {
-      print('connect error ${data}');
+      print('connect error $data');
     });
     socket.on('receive_message', (jsonData) {
       var data = jsonData as Map<String, dynamic>;
@@ -41,6 +39,7 @@ class ChatProvider with ChangeNotifier {
         text: data['content'],
         senderID: data['senderChatID'],
         receiverID: data['receiverChatID'],
+        isMedia: data['isMedia'],
       );
       addMessage(message);
       notifyListeners();
@@ -50,35 +49,37 @@ class ChatProvider with ChangeNotifier {
     socket.on('fromServer', (_) => print(_));
   }
 
-  sendMessage(String userName, String message) {
+  sendMessage(String userName, String message, bool isMedia) {
     socket.emit('message', {
       'receiverChatID': userName,
       'senderChatID': clientID,
       'message': message,
+      'isMedia': isMedia,
       'timestamp': DateTime.now().toIso8601String(),
     });
     Message newMessage = Message(
       text: message,
       senderID: clientID,
       receiverID: userName,
-      isMedia: false,
+      isMedia: isMedia,
       timestamp: DateTime.now(),
     );
     // addMessage(newMessage);
   }
 
-  sendMedia(String userName, String url) {
-    socket.emit('media', {
-      'receiverChatID': userName,
+  forwardMessage(String receiverId, String message, bool isMedia) {
+    socket.emit('forward', {
+      'receiverChatID': receiverId,
       'senderChatID': clientID,
-      'mediaUrl': url,
+      'message': message,
+      'isMedia': isMedia,
       'timestamp': DateTime.now().toIso8601String(),
     });
     Message newMessage = Message(
-      text: url,
+      text: message,
       senderID: clientID,
-      receiverID: userName,
-      isMedia: true,
+      receiverID: receiverId,
+      isMedia: isMedia,
       timestamp: DateTime.now(),
     );
     // addMessage(newMessage);
