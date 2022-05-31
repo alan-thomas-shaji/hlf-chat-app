@@ -38,7 +38,7 @@ async function createBuffer() {
 }
 
 module.exports = {
-  uploadImage: uploadImage(),
+  uploadImage: uploadImage,
 };
 
 // createBuffer();
