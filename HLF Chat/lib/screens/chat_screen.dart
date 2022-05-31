@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -25,7 +26,6 @@ class ChatScreen extends StatelessWidget {
       Provider.of<ChatProvider>(context, listen: false).sendMessage(
         user!.userID!,
         messageController!.text,
-        false,
       );
       messageController!.clear();
     }
@@ -35,12 +35,16 @@ class ChatScreen extends StatelessWidget {
     final ImagePicker _picker = ImagePicker();
     final XFile? image =
         await _picker.pickImage(source: ImageSource.gallery).then(
-      (value) {
+      (value) async {
         print(value!.path);
-        Provider.of<ChatProvider>(context, listen: false).sendMessage(
-          user!.userID!,
-          value.path,
-          true,
+        var bytes = await value.readAsBytes().then(
+          (b) {
+            Provider.of<ChatProvider>(context, listen: false).sendMedia(
+              user!.userID!,
+              value.path,
+              b,
+            );
+          },
         );
         Get.back();
       },
@@ -96,26 +100,36 @@ class ChatScreen extends StatelessWidget {
                 ],
               ),
             ),
-            Expanded(
-              child: Consumer<ChatProvider>(
-                builder: (context, chatProvider, child) {
-                  List<Message> msgs = [];
-                  msgs = chatProvider.getMessages(user!.userID!);
-                  return Container(
-                    color: Color.fromARGB(255, 224, 225, 231),
-                    child: ListView.builder(
-                      itemCount: msgs.length,
-                      itemBuilder: (context, index) {
-                        return MessageBubble(
-                          message: msgs[index],
-                          isMedia: msgs[index].isMedia,
-                          isMe: msgs[index].senderID != user!.userID!,
-                        );
-                      },
-                    ),
-                  );
-                },
-              ),
+            Consumer<ChatProvider>(
+              builder: (context, chatProvider, child) {
+                List<Message> msgs = [];
+                msgs = chatProvider.getMessages(user!.userID!);
+                return chatProvider.isLoading
+                    ? SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          backgroundColor: Colors.transparent,
+                          color: Color.fromARGB(255, 255, 96, 96),
+                          strokeWidth: 3,
+                        ),
+                      )
+                    : Expanded(
+                        child: Container(
+                          color: Color.fromARGB(255, 224, 225, 231),
+                          child: ListView.builder(
+                            itemCount: msgs.length,
+                            itemBuilder: (context, index) {
+                              return MessageBubble(
+                                message: msgs[index],
+                                isMedia: msgs[index].isMedia,
+                                isMe: msgs[index].senderID != user!.userID!,
+                              );
+                            },
+                          ),
+                        ),
+                      );
+              },
             ),
             Container(
               height: 45,
@@ -268,7 +282,9 @@ class MessageBubble extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                isMe! ? ForwardButton(isMe: isMe, message: message) : SizedBox(),
+                isMe!
+                    ? ForwardButton(isMe: isMe, message: message)
+                    : SizedBox(),
                 isMe!
                     ? SizedBox(
                         width: 12,
@@ -280,14 +296,26 @@ class MessageBubble extends StatelessWidget {
                       ? SizedBox(
                           height: 170,
                           width: 170,
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: message!.text!.startsWith('http')
-                                ? Image.network(message!.text!)
-                                : Image.file(
-                                    File(message!.text!),
-                                    fit: BoxFit.fitWidth,
+                          child: GestureDetector(
+                            onTap: () {
+                              Get.dialog(
+                                Container(
+                                  height: Get.height,
+                                  width: Get.width,
+                                  color: Colors.black54,
+                                  child: Image.network(
+                                    message!.text!,
                                   ),
+                                ),
+                              );
+                            },
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.network(
+                                message!.text!,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
                           ),
                         )
                       : Text(
@@ -314,7 +342,9 @@ class MessageBubble extends StatelessWidget {
                     : SizedBox(
                         width: 12,
                       ),
-                isMe! ? SizedBox() : ForwardButton(isMe: isMe, message: message),
+                isMe!
+                    ? SizedBox()
+                    : ForwardButton(isMe: isMe, message: message),
               ],
             ),
           ),
@@ -345,7 +375,6 @@ class ForwardButton extends StatelessWidget {
     Provider.of<ChatProvider>(context, listen: false).forwardMessage(
       uid,
       message,
-      isMedia,
       id,
     );
     Get.back();
@@ -379,13 +408,24 @@ class ForwardButton extends StatelessWidget {
                         height: 160,
                         width: Get.width,
                         child: ListView.builder(
-                            itemCount: userProvider.otherUsers.length,
+                            itemCount: userProvider.otherUsers
+                                .where((element) =>
+                                    element.userID != message!.receiverID &&
+                                    element.userID != message!.senderID)
+                                .toList()
+                                .length,
                             itemBuilder: (context, index) {
                               return GestureDetector(
                                 onTap: () => forwardMessage(
                                   context,
                                   isMe!,
-                                  userProvider.otherUsers[index].userID!,
+                                  userProvider.otherUsers
+                                      .where((element) =>
+                                          element.userID !=
+                                              message!.receiverID &&
+                                          element.userID != message!.senderID)
+                                      .toList()[index]
+                                      .userID!,
                                   message!.id!,
                                   message!.text!,
                                   false,
@@ -403,12 +443,25 @@ class ForwardButton extends StatelessWidget {
                                     children: [
                                       CircleAvatar(
                                         backgroundImage: NetworkImage(
-                                            userProvider
-                                                .otherUsers[index].photoUrl!),
+                                            userProvider.otherUsers
+                                                .where((element) =>
+                                                    element.userID !=
+                                                        message!.receiverID &&
+                                                    element.userID !=
+                                                        message!.senderID)
+                                                .toList()[index]
+                                                .photoUrl!),
                                         radius: 16,
                                       ),
                                       SizedBox(width: 10),
-                                      Text(userProvider.otherUsers[index].name!)
+                                      Text(userProvider.otherUsers
+                                          .where((element) =>
+                                              element.userID !=
+                                                  message!.receiverID &&
+                                              element.userID !=
+                                                  message!.senderID)
+                                          .toList()[index]
+                                          .name!)
                                     ],
                                   ),
                                 ),

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
@@ -6,6 +7,7 @@ import 'package:hlfchat/models/message.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+import 'package:unique_identifier/unique_identifier.dart';
 
 class ChatProvider with ChangeNotifier {
   bool isLoading = false;
@@ -13,16 +15,18 @@ class ChatProvider with ChangeNotifier {
   List<Message> messages = [];
   String apiUrl = 'https://msg-restapi.herokuapp.com';
   late String clientID;
+  String imei = '';
 
   final IO.Socket socket = IO.io(
       'ws://msg-socket-server.herokuapp.com',
       IO.OptionBuilder()
-          .setTransports(['websocket']).setQuery({'chatID': 'Jobin'}).build());
+          .setTransports(['websocket']).setQuery({'chatID': 'User'}).build());
 
-  getData() async{
+  getData() async {
     final box = GetStorage();
     clientID = box.read('userID');
     messages = await getPastMessages(clientID);
+    imei = (await UniqueIdentifier.serial)!;
   }
 
   socketInit() {
@@ -36,9 +40,10 @@ class ChatProvider with ChangeNotifier {
     socket.on('receive_message', (jsonData) {
       var data = jsonData as Map<String, dynamic>;
       // Map<dynamic, dynamic> data = json.decode(jsonData as String);
-      print(data);
+      print(jsonData);
       Message message = Message.fromJson(data);
       addMessage(message);
+      isLoading = false;
       notifyListeners();
     });
 
@@ -46,40 +51,59 @@ class ChatProvider with ChangeNotifier {
     socket.on('fromServer', (_) => print(_));
   }
 
-  sendMessage(String receiverId, String message, bool isMedia) {
+  sendMessage(String receiverId, String message) {
     socket.emit('message', {
       'receiverChatID': receiverId,
       'senderChatID': clientID,
       'message': message,
-      'isMedia': isMedia,
-      'deviceMAC': 'fdgdsgsdgsdg',
+      'deviceMAC': imei,
       'timestamp': DateTime.now().toIso8601String(),
     });
     Message newMessage = Message(
       text: message,
       senderID: clientID,
       receiverID: receiverId,
-      isMedia: isMedia,
+      isMedia: false,
       timestamp: DateTime.now(),
     );
     // addMessage(newMessage);
   }
 
-  forwardMessage(String receiverId, String message, bool isMedia, String id) {
-    socket.emit('forward', {
-      'messageID' : id,
+  sendMedia(String receiverId, String message, Uint8List bytes) {
+    isLoading = true;
+    notifyListeners();
+    socket.emit('media', {
       'receiverChatID': receiverId,
       'senderChatID': clientID,
       'message': message,
-      'isMedia': isMedia,
-      'deviceMAC': 'fdgdsgsdgsdg',
+      'deviceMAC': imei,
+      'image': bytes,
       'timestamp': DateTime.now().toIso8601String(),
     });
     Message newMessage = Message(
       text: message,
       senderID: clientID,
       receiverID: receiverId,
-      isMedia: isMedia,
+      isMedia: true,
+      timestamp: DateTime.now(),
+    );
+    // addMessage(newMessage);
+  }
+
+  forwardMessage(String receiverId, String message, String id) {
+    socket.emit('forward', {
+      'messageID': id,
+      'receiverChatID': receiverId,
+      'senderChatID': clientID,
+      'message': message,
+      'deviceMAC': imei,
+      'timestamp': DateTime.now().toIso8601String(),
+    });
+    Message newMessage = Message(
+      text: message,
+      senderID: clientID,
+      receiverID: receiverId,
+      isMedia: false,
       timestamp: DateTime.now(),
     );
     // addMessage(newMessage);
