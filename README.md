@@ -5,9 +5,9 @@ The Chat Application is built using Flutter as it's frontend and NodeJS as it's 
 This project aims to bring responsibility and accountability back to the anonymous internet.
 
 #### Folder Structure
-HLF Chat folder - all files regarding the Flutter frontend
-Node - files regarding the [socket server](https://msg-socket-server.herokuapp.com/) powered by NodeJS.
-REST-API - files containing the [REST-API](https://msg-restapi.herokuapp.com/) routes to invoke the HLF Client.
-Fabric Network - files required for building the hyperledger network and creating channels and smart contracts (Chaincodes).
+- HLF Chat folder - all files regarding the Flutter frontend
+- Node - files regarding the [socket server](https://msg-socket-server.herokuapp.com/) powered by NodeJS.
+- REST-API - files containing the [REST-API](https://msg-restapi.herokuapp.com/) routes to invoke the HLF Client.
+- Fabric Network - files required for building the hyperledger network and creating channels and smart contracts (Chaincodes).
 
 #### Further info about how to run the project will be uploaded soon.
