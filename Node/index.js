@@ -59,6 +59,7 @@ io.on("connection", (socket) => {
       timestamp: data.timestamp,
       deviceMAC: data.deviceMAC,
       isMedia: false,
+      
     };
 
     createMessage(message)
