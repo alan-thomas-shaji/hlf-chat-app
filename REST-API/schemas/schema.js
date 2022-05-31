@@ -25,9 +25,9 @@ const msgSchema = mongoose.Schema(
       type: Boolean,
       required: [true, "Ok "],
     },
-    forwardCount: {
-      type: Number,
-      default: 0,
+    isForwarded: {
+      type: Boolean,
+      default: false,
     },
   },
   {
