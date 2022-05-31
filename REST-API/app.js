@@ -4,14 +4,23 @@ var logger = log4js.getLogger();
 const express = require("express");
 const axios = require("axios");
 const mongoose = require("mongoose");
-var bodyParser = require("body-parser");
 var cors = require("cors");
+const { createMessageBlock } = require("./API/lib/message");
 const { parse, stringify, toJSON, fromJSON } = require("flatted");
 const { msgSchema, userSchema, chatIDSchema } = require("./schemas/schema.js");
 const { nanoid } = require("nanoid");
+const { getJWT, updateJWT } = require("./API/tokenService");
+const axiosClient = require("./API/apiClient");
 const app = express();
 
+if (typeof localStorage === "undefined" || localStorage === null) {
+  var LocalStorage = require("node-localstorage").LocalStorage;
+  localStorage = new LocalStorage("./scratch");
+}
+
 logger.level = "debug";
+
+console.log(getJWT());
 
 //Connecting MongoDB
 if (Boolean(process.env.PRODUCTION)) {
@@ -38,8 +47,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
-let token =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTM0ODc0ODEsInVzZXJuYW1lIjoiTW9udSIsIm9yZ05hbWUiOiJPcmcxIiwiaWF0IjoxNjUzNDUxNDgxfQ.i2hIHG1nnAYW4fniCLC4ZFwB4OWmW9t6-pSdCt1fBaU";
+let token = getJWT();
 
 //Routes
 //Home Route
@@ -54,40 +62,14 @@ app.post("/users", (req, res) => {
     email: req.body.email,
     username: req.body.username,
   });
-  newUser.save();
-
-  // const config = {
-  //   headers: { Authorization: `Bearer ${token}` },
-  // };
-  //
-  // axios
-  //   .post(
-  //     process.env.NGROK_URL + "/users",
-  //     {
-  //       username:
-  //         String(req.body.uuid) +
-  //         "_" +
-  //         String(req.body.email) +
-  //         "_" +
-  //         String(req.body.username),
-  //       orgName: "Org1",
-  //     },
-  //     config
-  //   )
-  //   .then((response) => {
-  //     const token = toJSON(response)[37].replaceAll(`"`, "");
-  //     logger.info("Use enrollment success with JWT token: " + token);
-  //   })
-  //   .catch((error) => {
-  //     logger.debug("Error: " + stringify(error));
-  //   });
-
-  const response = {
-    userObject: newUser,
-    token: token,
-  };
-
-  res.send(JSON.stringify(response));
+  newUser.save((err) => {
+    if (err) {
+      res.send(err);
+    }
+    if (!err) {
+      res.send(JSON.stringify(newUser));
+    }
+  });
 });
 
 app.get("/users", (req, res) => {
@@ -239,37 +221,38 @@ app.post("/messages/:chatId", (req, res) => {
     foundChat.save();
     newMessage.save();
 
-    logger.info("Message ID: " + newMessage._id);
+    // logger.info("Message ID: " + newMessage._id);
 
-    axios
-      .post(
-        process.env.NGROK_URL +
-          "/channels/mychannel/chaincodes/messagecontract",
-        {
-          fcn: "createMessage",
-          peers: ["peer0.org1.example.com"],
-          chaincodeName: "messagecontract",
-          channelName: "mychannel",
-          args: [
-            String(newMessage._id),
-            String(req.body.sender),
-            String(req.body.deviceMAC),
-            String(req.body.receiver),
-            String(req.body.content),
-            String(req.body.timestamp),
-          ],
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      )
+    token = getJWT();
+
+    const header = { Authorization: `Bearer ${token}` };
+
+    const blockData = {
+      fcn: "createMessage",
+      peers: ["peer0.org1.example.com"],
+      chaincodeName: "messagecontract",
+      channelName: "mychannel",
+      args: [
+        String(newMessage._id),
+        String(req.body.sender),
+        String(req.body.deviceMAC),
+        String(req.body.receiver),
+        String(req.body.content),
+        String(req.body.timestamp),
+      ],
+    };
+
+    createMessageBlock(blockData, header)
       .then((response) => {
-        logger.debug(stringify(response));
+        console.log("token: " + getJWT());
+        // console.info(response.data);
       })
       .catch((error) => {
-        logger.debug(stringify(error));
+        if (error.response.status === 401) {
+          console.log("token: " + getJWT());
+          error.config.headers["Authorization"] = "Bearer " + getJWT();
+          axiosClient.request(error.config);
+        }
       });
 
     res.send(
