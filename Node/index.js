@@ -66,8 +66,8 @@ io.on("connection", (socket) => {
       .catch((error) => console.error(error));
   });
 
-  socket.on("media", (data) => {
-    const mediaUrl = uploadImage(Buffer(data.image));
+  socket.on("media", async (data) => {
+    const mediaUrl = await uploadImage(Buffer(data.image));
     const mediaMessage = {
       sender: data.senderChatID,
       receiver: data.receiverChatID,
@@ -86,11 +86,17 @@ io.on("connection", (socket) => {
     getMessage(data.messageID)
       .then((response) => {
         let message = response.data;
-        message.forwardCount += 1;
-        patchMessage(String(message._id), {
-          forwardCount: message.forwardCount,
-        })
-          .then((response) => io.emit("receive_message", message))
+        let forwarded = {
+          sender: data.senderChatID,
+          receiver: data.receiverChatID,
+          content: message.content,
+          timestamp: data.timestamp,
+          deviceMAC: data.deviceMAC,
+          isMedia: message.isMedia,
+          isForwarded: true,
+        };
+        createMessage(forwarded)
+          .then((response) => io.emit("receive_message", forwarded))
           .catch((error) => console.error(error));
       })
       .catch((error) => console.log(error));
