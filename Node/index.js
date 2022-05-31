@@ -75,7 +75,7 @@ io.on("connection", (socket) => {
       content: mediaUrl,
       deviceMAC: data.deviceMAC,
       timestamp: data.timestamp,
-      isMedia: false,
+      isMedia: true,
     };
 
     createMessage(mediaMessage)
